@@ -25,6 +25,7 @@
  """
 
 
+import math
 import config as cf
 from DISClib.ADT import list as lt
 from DISClib.ADT import stack as st
@@ -46,6 +47,9 @@ from DISClib.Algorithms.Sorting import insertionsort as ins
 from DISClib.Algorithms.Sorting import selectionsort as se
 from DISClib.Algorithms.Sorting import mergesort as merg
 from DISClib.Algorithms.Sorting import quicksort as quk
+from DISClib.Utils import error as error
+
+
 assert cf
 
 """
@@ -60,19 +64,159 @@ def new_data_structs():
     """
     Inicializa las estructuras de datos del modelo. Las crea de
     manera vacía para posteriormente almacenar la información.
+    
+    Aeropuertos: Estructura para almacenar los vértices del grafo
+    Vuelos: grafo
+    
     """
     #TODO: Inicializar las estructuras de datos
-    pass
+    try:
+        analyzer = {
+            'Aeropuerto': None,
+            'vuelos': None,
+            'vuelosComerciales': None,
+            'vuelosCarga': None,
+            'vuelosMilitares': None,
+            'tiempo':None
+        }
+        
+        analyzer['Aeropuerto']= mp.newMap(numelements=14000,
+                                          maptype="PROBING",
+                                          cmpfunction=compareAir)
+
+        analyzer['aeropuertos'] = gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=True,
+                                              size=14000,
+                                              cmpfunction=compareAir)
+
+        analyzer['vuelosComerciales'] = gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=True,
+                                              size=14000,
+                                              cmpfunction=compareAir)
+        analyzer['vuelosCarga'] = gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=True,
+                                              size=14000,
+                                              cmpfunction=compareAir)
+        analyzer['vuelosMilitares'] = gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=True,
+                                              size=14000,
+                                              cmpfunction=compareAir)
+        
+        return analyzer
+    except Exception as exp:
+        error.reraise(exp, 'model:new_data_structs')
 
 
-# Funciones para agregar informacion al modelo
+# Funciones para agregar informacion al 
 
-def add_data(data_structs, data):
+def addAirportConnection(analyzer, org, dst):
+    """
+    Adiciona los aeropuertos al grafo como vertices y arcos entre las
+    estaciones adyacentes.
+
+    Los vertices tienen por nombre el identificadol aeropuerto
+    seguido de la ruta que sirve.
+
+    """
+    try:
+        origin = org['ICAO']
+        destination = dst['ICAO']
+        
+        distance = float(haversine(org['LATITUD'],org['LONGITUD'],dst['LATITUD'],dst['LONGITUD']))
+        
+        addDistance(analyzer, origin)
+        addDistance(analyzer, destination)
+        addConnection(analyzer, origin, destination, distance)
+        addRouteAirport(analyzer, org)
+        addRouteAirport(analyzer, dst)
+        return analyzer
+    except Exception as exp:
+        error.reraise(exp, 'model:addAirportConnection')
+
+def haversine(lat1, lon1, lat2, lon2):
+    lat1_rad = math.radians(lat1)
+    lon1_rad = math.radians(lon1)
+    lat2_rad = math.radians(lat2)
+    lon2_rad = math.radians(lon2)
+    
+    dlat = lat2_rad - lat1_rad
+    dlon = lon2_rad - lon1_rad
+    
+    a = math.pow(math.sin(dlat / 2), 2) + math.cos(lat1_rad) * math.cos(lat2_rad) * math.pow(math.sin(dlon / 2), 2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    R = 6371
+    
+    return R * c
+
+def addDistance(analyzer, airport):
+    """
+    Adiciona una estación como un vertice del grafo
+    """
+    try:
+        if not gr.containsVertex(analyzer['aeropuertos'], airport):
+            gr.insertVertex(analyzer['aeropuertos'], airport)
+        return analyzer
+    except Exception as exp:
+        error.reraise(exp, 'model:addDistance')
+
+def addConnection(analyzer, origin, destination, distance):
+    """
+    Adiciona un arco entre dos aeropuertos
+    """
+    edge = gr.getEdge(analyzer['aeropuertos'], origin, destination)
+    if edge is None:
+        gr.addEdge(analyzer['aeropuertos'], origin, destination, distance)
+    return analyzer
+
+
+def addRouteAirport(analyzer, fligth):
+    """
+    Agrega a una estacion, una ruta que es servida en ese paradero
+    """
+    entry = mp.get(analyzer['aeropuertos'], fligth['ICAO'])
+    if entry is None:
+        lstroutes = lt.newList(cmpfunction=compareroutes)
+        lt.addLast(lstroutes, fligth['ICAO'])
+        mp.put(analyzer['stops'], fligth['ICAO'], lstroutes)
+    else:
+        lstroutes = entry['value']
+        info = fligth['ICAO']
+        if not lt.isPresent(lstroutes, info):
+            lt.addLast(lstroutes, info)
+    return analyzer
+
+
+
+
+
+
+
+
+
+
+
+def add_vertex(data_structs, data):
     """
     Función para agregar nuevos elementos a la lista
     """
     #TODO: Crear la función para agregar elementos a una lista
-    pass
+    try:
+        if not gr.containsVertex(data_structs['aeropuerto'], data):
+            gr.insertVertex(data_structs['aeropuerto'], data)
+        return data_structs
+    except Exception as exp:
+        error.reraise(exp, 'model:addVertex')
+        
+def addVertex(analyzer, stopid):
+    """
+    Adiciona una estación como un vertice del grafo
+    """
+    try:
+        if not gr.containsVertex(analyzer['aeropuerto'], stopid):
+            gr.insertVertex(analyzer['aeropuerto'], stopid)
+        return analyzer
+    except Exception as exp:
+        error.reraise(exp, 'model:addVertex')        
 
 
 # Funciones para creacion de datos
@@ -169,12 +313,27 @@ def req_8(data_structs):
 
 # Funciones utilizadas para comparar elementos dentro de una lista
 
-def compare(data_1, data_2):
+def compareAir(ciudad, llave):
+    code =llave['key']
+    if (ciudad == code):
+        return 0
+    elif (ciudad > code):
+        return 1
+    else:
+        return -1  
+    
+
+def compareroutes(route1, route2):
     """
-    Función encargada de comparar dos datos
+    Compara dos rutas
     """
-    #TODO: Crear función comparadora de la lista
-    pass
+    if (route1 == route2):
+        return 0
+    elif (route1 > route2):
+        return 1
+    else:
+        return -1
+     
 
 # Funciones de ordenamiento
 
@@ -199,3 +358,5 @@ def sort(data_structs):
     """
     #TODO: Crear función de ordenamiento
     pass
+
+
