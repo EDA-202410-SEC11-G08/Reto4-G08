@@ -62,12 +62,13 @@ def print_menu():
     print("0- Salir")
 
 
-def load_data(control):
+def load_data(control, memflag):
     """
     Carga los datos
     """
     #TODO: Realizar la carga de datos
-    pass
+    ans = controller.load_data(control, memflag)
+    return ans
 
 
 def print_data(control, id):
@@ -140,7 +141,15 @@ def print_req_8(control):
     # TODO: Imprimir el resultado del requerimiento 8
     pass
 
-
+def castBoolean(value):
+    """
+    Convierte un valor a booleano
+    """
+    if value in ('True', 'true', 'TRUE', 'T', 't', '1', True):
+        return True
+    else:
+        return False
+    
 # Se crea el controlador asociado a la vista
 control = new_controller()
 
@@ -154,9 +163,19 @@ if __name__ == "__main__":
     while working:
         print_menu()
         inputs = input('Seleccione una opción para continuar\n')
-        if int(inputs) == 1:
+        if int(inputs) == 1: # CARGA DE DATOS ------------------------------------------------------
             print("Cargando información de los archivos ....\n")
-            data = load_data(control)
+            # Observar uso de memoria en la carga de datos -----------------------------------------
+            print("Desea observar el uso de memoria? (True/False)")
+            mem = input("Respuesta: ")
+            mem = castBoolean(mem)
+            # Ejecutar comando de cargar datos -----------------------------------------------------
+            ans = load_data(control, memflag=mem)
+            # Cantidad de datos guardados ----------------------------------------------------------
+            print('Ofertas cargadas: ' + str(controller.job_size(control))) # Poner tamano !!!!!!!!!!!!
+            # VISUALIZADOR CARGA DE DATOS ----------------------------------------------------------
+            num = input('Cuantas ofertas desea visualizar ')
+
         elif int(inputs) == 2:
             print_req_1(control)
 
