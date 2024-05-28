@@ -36,19 +36,73 @@ def new_controller():
     Crea una instancia del modelo
     """
     #TODO: Llamar la función del modelo que crea las estructuras de datos
-    pass
+    control = {'model': None}
+    control['model'] = model.new_catalog()
+    return control
 
 
 # Funciones para la carga de datos
 
-def load_data(control, filename):
+def load_data(control, memflag = True):
     """
     Carga los datos del reto
     """
     # TODO: Realizar la carga de datos
-    pass
+    catalog = control['model']
+    ans = []
+    
+    start_time = get_time() # Inicio toma de datos
+    if memflag is True:
+        tracemalloc.start()
+        start_memory = get_memory()
 
+    load_data_airports(catalog) # Crear dic inicial con paises
+    catalog['Aeropuerto_COM'] = catalog['Aeropuerto']
+    catalog['Aeropuerto_MIL'] = catalog['Aeropuerto']
+    catalog['Aeropuerto_CAR'] = catalog['Aeropuerto']
+    load_data_flights(catalog) # Clasificar vuelos por aeropuerto
+    
+    # ['AVIACION_COMERCIAL','MILITAR','AVIACION_CARGA']:
+    for tipo in ['Aeropuerto_COM','Aeropuerto_MIL','Aeropuerto_CAR']:
+        anstemp = model.show_data(catalog[tipo])
+        ans.append(anstemp)             
 
+    stop_time = get_time() # Final toma de datos
+    deltaTime = delta_time(start_time, stop_time)
+    # finaliza el proceso para medir memoria
+    if memflag is True:
+        stop_memory = get_memory()
+        tracemalloc.stop()
+        # calcula la diferencia de memoria
+        deltaMemory = delta_memory(stop_memory, start_memory)
+        # respuesta con los datos de tiempo y memoria
+        return ans, (deltaTime, deltaMemory)
+
+    else:
+        # respuesta sin medir memoria
+        return ans, deltaTime
+
+def load_data_flights(catalog):
+    """
+    Carga los datos del csv de vuelos
+    """
+    # TODO: Realizar la carga de datos
+    file = cf.data_dir+ 'data/fligths-2022.csv'
+    input_file = csv.DictReader(open(file, encoding='utf-8'), restval= 'Desconocido', delimiter= ";")
+    for row in input_file:
+        model.add_data_flights(catalog, row)
+
+def load_data_airports(catalog):
+    """
+    Carga los datos del csv de aeropuertos
+    """
+    # TODO: Realizar la carga de datos
+    file = cf.data_dir+ 'data/airports-2022.csv'
+    input_file = csv.DictReader(open(file, encoding='utf-8'), restval= 'Desconocido', delimiter= ";")
+    for row in input_file:
+        model.add_data_airports(catalog, row)  
+    
+      
 # Funciones de ordenamiento
 
 def sort(control):
@@ -60,6 +114,12 @@ def sort(control):
 
 
 # Funciones de consulta sobre el catálogo
+
+def airport_size(control):
+    return model.airport_size(control["model"])
+
+def flight_size(control):
+    return model.flight_size(control["model"])
 
 def get_data(control, id):
     """

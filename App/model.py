@@ -60,7 +60,7 @@ dos listas, una para los videos, otra para las categorias de los mismos.
 # Construccion de modelos
 
 
-def new_data_structs():
+def new_catalog():
     """
     Inicializa las estructuras de datos del modelo. Las crea de
     manera vacía para posteriormente almacenar la información.
@@ -71,7 +71,7 @@ def new_data_structs():
     """
     #TODO: Inicializar las estructuras de datos
     try:
-        analyzer = {
+        catalog = {
             'Aeropuerto': None,
             'vuelos': None,
             'vuelosComerciales': None,
@@ -79,35 +79,131 @@ def new_data_structs():
             'vuelosMilitares': None,
             'tiempo':None
         }
-        
-        analyzer['Aeropuerto']= mp.newMap(numelements=14000,
-                                          maptype="PROBING",
+        # LISTAS     
+       
+        # DICCIONARIOS     
+        # diccionario de aeropuertos - csv
+        catalog['airports'] = lt.newList(datastructure='ARRAY_LIST')
+        catalog['fligths'] = lt.newList(datastructure='ARRAY_LIST')
+        catalog['Aeropuerto']= mp.newMap(numelements=14000,
+                                          maptype="CHAINING",
                                           cmpfunction=compareAir)
-
-        analyzer['aeropuertos'] = gr.newGraph(datastructure='ADJ_LIST',
+        # diccionario de aeropuertos alimentado con la info de vuelos
+        # Cada diccionario corresponde para un tipo de vuelo, comercial, militar y de carga        
+        catalog['Aeropuerto_COM']= mp.newMap(numelements=3021,
+                                          maptype="CHAINING",
+                                          loadfactor= 0.7,
+                                          cmpfunction=compareAir)
+        catalog['Aeropuerto_MIL']= mp.newMap(numelements=3021,
+                                          maptype="CHAINING",
+                                          loadfactor= 0.7,
+                                          cmpfunction=compareAir)
+        catalog['Aeropuerto_CAR']= mp.newMap(numelements=3021,
+                                          maptype="CHAINING",
+                                          loadfactor= 0.7,
+                                          cmpfunction=compareAir)
+        
+        # GRAFOS     
+        catalog['aeropuertos'] = gr.newGraph(datastructure='ADJ_LIST',
                                               directed=True,
                                               size=14000,
                                               cmpfunction=compareAir)
 
-        analyzer['vuelosComerciales'] = gr.newGraph(datastructure='ADJ_LIST',
+        catalog['vuelosComerciales'] = gr.newGraph(datastructure='ADJ_LIST',
                                               directed=True,
                                               size=14000,
                                               cmpfunction=compareAir)
-        analyzer['vuelosCarga'] = gr.newGraph(datastructure='ADJ_LIST',
+        catalog['vuelosCarga'] = gr.newGraph(datastructure='ADJ_LIST',
                                               directed=True,
                                               size=14000,
                                               cmpfunction=compareAir)
-        analyzer['vuelosMilitares'] = gr.newGraph(datastructure='ADJ_LIST',
+        catalog['vuelosMilitares'] = gr.newGraph(datastructure='ADJ_LIST',
                                               directed=True,
                                               size=14000,
                                               cmpfunction=compareAir)
         
-        return analyzer
+        return catalog
     except Exception as exp:
         error.reraise(exp, 'model:new_data_structs')
 
 
 # Funciones para agregar informacion al 
+
+def add_data_airports(catalog, row):
+    add_airport(catalog['Aeropuerto'], row['ICAO'], row)
+    lt.addLast(catalog['airports'], row)
+    return catalog
+
+def add_airport(map, airport, row, mode = 0):
+    airports = map
+    existairport = mp.contains(airports, airport)
+    if existairport:
+        entry = mp.get(airports, airport)
+        airporttemp = me.getValue(entry)
+    else:
+        airporttemp = new_airport(row)
+        mp.put(airports, airport, airporttemp)
+    
+    if mode == 1:
+        lt.addLast(airporttemp['Vuelos_origen'], row)
+        airporttemp['Cantidad_VO'] = lt.size(airporttemp['Vuelos_origen'])
+        
+    elif mode == 2:     
+        lt.addLast(airporttemp['Vuelos_destino'], row)
+        airporttemp['Cantidad_VD'] = lt.size(airporttemp['Vuelos_destino']) 
+    
+    airporttemp['Cantidad'] = airporttemp['Cantidad_VO'] + airporttemp['Cantidad_VD']
+
+   
+def new_airport(airport_in):
+    airport = {'Nombre': airport_in['NOMBRE'],
+               'ICAO': airport_in['ICAO'],
+               'Ciudad': airport_in['CIUDAD'],
+               'Pais': airport_in['PAIS'],
+               'Latitud': float(airport_in['LATITUD'].replace(",",".")),
+               'Longitud': float(airport_in['LONGITUD'].replace(",",".")),
+               'Altitud': float(airport_in['ALTITUD'].replace(",",".")),
+               'Vuelos_origen': None,
+               'Cantidad_VO': 0,
+               'Vuelos_destino': None,
+               'Cantidad_VD': 0,
+               'Cantidad': 0
+    }
+    
+    airport['Vuelos_origen'] = lt.newList('ARRAY_LIST')
+    airport['Vuelos_destino'] = lt.newList('ARRAY_LIST')
+
+    return airport
+
+def add_data_flights(catalog, row):
+    
+    if (row['TIPO_VUELO'] == 'AVIACION_COMERCIAL'):
+        add_airport(catalog['Aeropuerto_COM'], row['ORIGEN'], row, 1)
+        add_airport(catalog['Aeropuerto_COM'], row['DESTINO'], row, 2)
+    elif (row['TIPO_VUELO'] == 'MILITAR'):
+        add_airport(catalog['Aeropuerto_MIL'], row['ORIGEN'], row, 1)
+        add_airport(catalog['Aeropuerto_MIL'], row['DESTINO'], row, 2)
+    elif (row['TIPO_VUELO'] == 'AVIACION_CARGA'): 
+        add_airport(catalog['Aeropuerto_CAR'], row['ORIGEN'], row, 1)
+        add_airport(catalog['Aeropuerto_CAR'], row['DESTINO'], row, 2)
+    lt.addLast(catalog['fligths'], row)
+
+    return catalog
+
+def show_data(map):
+    airports = mp.valueSet(map)
+    airports = merg.sort(airports, cmp_total_flights)
+    
+    # Eliminar aeropuertos en 0, gasto temporal muy alto, MEJORAR/ARREGLAR/ELIMINAR
+    """ 
+    stop = False
+    while stop == False:
+        ultimo = lt.lastElement(airports)
+        if (ultimo['Cantidad'] == 0):
+            lt.removeLast(airports)
+        else: stop == True
+    """ 
+    return airports
 
 def addAirportConnection(analyzer, org, dst):
     """
@@ -246,6 +342,11 @@ def data_size(data_structs):
     #TODO: Crear la función para obtener el tamaño de una lista
     pass
 
+def airport_size(catalog):
+    return lt.size(catalog['airports'])
+
+def flight_size(catalog):
+    return lt.size(catalog['fligths'])
 
 def req_1(data_structs):
     """
@@ -358,5 +459,14 @@ def sort(data_structs):
     """
     #TODO: Crear función de ordenamiento
     pass
+
+def cmp_total_flights(oferta1, oferta2): # Comparacion para organizar aeropuertos por mayor numero de vuelos
+    if (oferta1['Cantidad'] > oferta2['Cantidad']):
+        return True
+    elif (oferta1['Cantidad'] == oferta2['Cantidad']):
+        if (oferta1['ICAO'] > oferta2['ICAO']):
+            return True
+        else: return False
+    else: return False
 
 
