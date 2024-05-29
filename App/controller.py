@@ -186,12 +186,37 @@ def req_4(control):
     pass
 
 
-def req_5(control):
+def req_5(control, memflag = True):
     """
     Retorna el resultado del requerimiento 5
     """
     # TODO: Modificar el requerimiento 5
-    pass
+    catalog = control['model']
+
+    # Inicio de mediciones
+    start_time = get_time()
+    if memflag is True:
+        tracemalloc.start()
+        start_memory = get_memory()
+
+    ans = model.req_5(catalog)
+    
+    # Finalización de mediciones
+    stop_time = get_time()
+    deltaTime = delta_time(start_time, stop_time)
+    
+    # finaliza el proceso para medir memoria
+    if memflag is True:
+        stop_memory = get_memory()
+        tracemalloc.stop()
+        # calcula la diferencia de memoria
+        deltaMemory = delta_memory(stop_memory, start_memory)
+        # respuesta con los datos de tiempo y memoria
+        return ans, deltaTime, deltaMemory
+
+    else:
+        # respuesta sin medir memoria
+        return ans, deltaTime
 
 def req_6(control):
     """
