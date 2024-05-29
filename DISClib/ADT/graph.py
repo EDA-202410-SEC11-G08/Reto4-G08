@@ -55,7 +55,7 @@ def newGraph(datastructure="ADJ_LIST",
     return gr.newGraph(size, cmpfunction,  directed, datastructure, gr)
 
 
-def insertVertex(graph, vertex):
+def xinsertVertex(graph, vertex):
     """
     Inserta el vertice vertex en el grafo graph
 
