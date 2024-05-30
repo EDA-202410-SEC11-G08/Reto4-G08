@@ -233,7 +233,7 @@ def print_req_3(info_req3):
     print(tabulate(table))
 
 
-def print_req_4(control, mode=1):
+def print_req_4(info_req4, mode=1):
     """
         Función que imprime la solución del Requerimiento 4 en consola
     """
@@ -303,8 +303,8 @@ def print_req_4(control, mode=1):
             print("Trayecto Total",origen,"->",destino)
             distancia_tot = 0
             naves = []
-            for distancia in lt.iterator(lt.getElement(info_req5[5],j)): distancia_tot += float(distancia)
-            for nave in lt.iterator(lt.getElement(info_req5[7],j)): naves.append(nave)
+            for distancia in lt.iterator(lt.getElement(info_req4[5],j)): distancia_tot += float(distancia)
+            for nave in lt.iterator(lt.getElement(info_req4[7],j)): naves.append(nave)
             
             table1.append([(origen,"->",destino),
                             me.getValue(mp.get(control['model']['Aeropuerto_CAR'],origen))['Nombre'],
@@ -463,25 +463,7 @@ def print_req_8(control):
     # TODO: Imprimir el resultado del requerimiento 8
     pass
 
-def printLoadDataAnswer(answer):
-    """
-    Imprime los datos de tiempo y memoria de la carga de datos
-    """
-    if isinstance(answer, (list, tuple)) is True:
-        print("Tiempo [ms]: ", f"{answer[0]:.3f}", "||",
-              "Memoria [kB]: ", f"{answer[1]:.3f}")
-    else:
-        print("Tiempo [ms]: ", f"{answer:.3f}")
 
-def castBoolean(value):
-    """
-    Convierte un valor a booleano
-    """
-    if value in ('True', 'true', 'TRUE', 'T', 't', '1', True):
-        return True
-    else:
-        return False
-    
 # Se crea el controlador asociado a la vista
 control = new_controller()
 
@@ -497,178 +479,27 @@ if __name__ == "__main__":
         inputs = input('Seleccione una opción para continuar\n')
         if int(inputs) == 1: # CARGA DE DATOS ------------------------------------------------------
             print("Cargando información de los archivos ....\n")
-            # Observar uso de memoria en la carga de datos -----------------------------------------
-            print("Desea observar el uso de memoria? (True/False)")
-            mem = input("Respuesta: ")
-            mem = castBoolean(mem)
-            # Ejecutar comando de cargar datos -----------------------------------------------------
-            ans = load_data(control, memflag=mem)
-            printLoadDataAnswer(ans[1])
-            # Cantidad de datos guardados ----------------------------------------------------------
-            print('Aeropuertos cargados: ' + str(controller.airport_size(control))) 
-            print('Vuelos cargados: ' + str(controller.flight_size(control))) 
-            # VISUALIZADOR CARGA DE DATOS ----------------------------------------------------------
-            tipos = ['Comercial','Militar','Carga']
-            i = 0
-            for tipo in ans[0]:
-                table1, table2 = print_load_data(tipo)
-                print("Primeros y ultimos 5 aeropuertos de concurrencia " + tipos[i])
-                print(tabulate(table1))
-                print(tabulate(table2))
-                i += 1
-                
-        elif int(inputs) == 2: # REQ 1 ----------------------------------------------------------
-            print("Ingresar coordenadas con '.' como decimal")
-            origen_lat = input("Inserta la latitud de origen: ")
-            origen_lon = input("Inserta la longitud de origen: ")
-            
-            destino_lat = input("Inserta la latitud de destino: ")
-            destino_lon = input("Inserta la longitud de destino: ")
-            
-            origen = (float(origen_lat), float(origen_lon))
-            destino = (float(destino_lat), float(destino_lon))
+            data = load_data(control)
+        elif int(inputs) == 2:
+            print_req_1(control)
 
-            # Observar uso de memoria en la carga de datos -----------------------------------------
-            print("Desea observar el uso de memoria? (True/False)")
-            mem = input("Respuesta: ")
-            mem = castBoolean(mem)
-            # Ejecutar comando de cargar datos -----------------------------------------------------
-            ans = controller.req_1(control, origen, destino, memflag = mem)
-            info_req1 = ans[0]
-            # Print rendimiento
-            print("Tiempo [ms]: ", f"{ans[1]:.3f}")
-            if (mem == True): print("Memoria [kB]: ", f"{ans[2]:.3f}")    
-            # Print resultados
-            if len(info_req1) == 1:
-                print(info_req1)
-            else:  
-                print_req_1(info_req1)             
-            
-        elif int(inputs) == 3: # REQ 3 ----------------------------------------------------------
-            print("Ingresar coordenadas con '.' como decimal")
-            origen_lat = input("Inserta la latitud de origen: ")
-            origen_lon = input("Inserta la longitud de origen: ")
-            
-            destino_lat = input("Inserta la latitud de destino: ")
-            destino_lon = input("Inserta la longitud de destino: ")
-            
-            origen = (float(origen_lat), float(origen_lon))
-            destino = (float(destino_lat), float(destino_lon))
+        elif int(inputs) == 3:
+            print_req_2(control)
 
-            # Observar uso de memoria en la carga de datos -----------------------------------------
-            print("Desea observar el uso de memoria? (True/False)")
-            mem = input("Respuesta: ")
-            mem = castBoolean(mem)
-            # Ejecutar comando de cargar datos -----------------------------------------------------
-            ans = controller.req_2(control, origen, destino, memflag = mem)
-            info_req2 = ans[0]
-            # Print rendimiento
-            print("Tiempo [ms]: ", f"{ans[1]:.3f}")
-            if (mem == True): print("Memoria [kB]: ", f"{ans[2]:.3f}")    
-            # Print resultados
-            if len(info_req2) == 2:
-                print(info_req2)
-            else:  
-                print_req_2(info_req2)
+        elif int(inputs) == 4:
+            print_req_3(control)
 
-        elif int(inputs) == 4: # REQ 3 ----------------------------------------------------------
+        elif int(inputs) == 5:
+            print_req_4(control)
 
-            print("Desea observar el uso de memoria? (True/False)")
-            mem = input("Respuesta: ")
-            mem = castBoolean(mem)
-            # Ejecutar comando de cargar datos -----------------------------------------------------
-            ans = controller.req_3(control,memflag = mem)
-            info_req3 = ans[0]
-            # Print rendimiento
-            print("Tiempo [ms]: ", f"{ans[1]:.3f}")
-            if (mem == True): print("Memoria [kB]: ", f"{ans[2]:.3f}")    
-            # Print resultados
-            if len(info_req3) == 1:
-                print(info_req3)
-            else:  
-                print_req_1(info_req3)
+        elif int(inputs) == 6:
+            print_req_5(control)
 
-        elif int(inputs) == 5: # REQ 4 ----------------------------------------------------------
+        elif int(inputs) == 7:
+            print_req_6(control)
 
-            print("Desea observar el uso de memoria? (True/False)")
-            mem = input("Respuesta: ")
-            mem = castBoolean(mem)
-            # Ejecutar comando de cargar datos -----------------------------------------------------
-            ans = controller.req_4(control,memflag = mem)
-            info_req4 = ans[0]
-            # Print rendimiento
-            print("Tiempo [ms]: ", f"{ans[1]:.3f}")
-            if (mem == True): print("Memoria [kB]: ", f"{ans[2]:.3f}")    
-            # Print resultados
-            if len(info_req4) == 1:
-                print(info_req4)
-            else:  
-                print_req_4(info_req4)
-
-        elif int(inputs) == 6: # REQ 5 -------------------------------------------------------------
-            print("Determinar red de respuesta militar de menor tiempo")
-            # Observar uso de memoria en la carga de datos -----------------------------------------
-            print("Desea observar el uso de memoria? (True/False)")
-            mem = input("Respuesta: ")
-            mem = castBoolean(mem)
-            # Ejecutar comando de cargar datos -----------------------------------------------------
-            ans = controller.req_5(control, memflag = mem)
-            info_req5 = ans[0]
-            # Print rendimiento
-            print("Tiempo [ms]: ", f"{ans[1]:.3f}")
-            if (mem == True): print("Memoria [kB]: ", f"{ans[2]:.3f}")    
-            # Print resultados
-            if len(info_req5) == 1:
-                print(info_req5)
-            else:  
-                print_req_5(info_req5)  
-
-        elif int(inputs) == 7: # REQ 6 ----------------------------------------------------------
-            n=input("Ingresar la cantidad de aeropuertos más importantes en Colombia que se desea cubrir: ")
-       
-
-            # Observar uso de memoria en la carga de datos -----------------------------------------
-            print("¿Desea observar el uso de memoria? (True/False)")
-            mem = input("Respuesta: ")
-            mem = castBoolean(mem)
-            # Ejecutar comando de cargar datos -----------------------------------------------------
-            ans = controller.req_6(control, n, memflag = mem)
-            info_req6 = ans[0]
-            # Print rendimiento
-            print("Tiempo [ms]: ", f"{ans[1]:.3f}")
-            if (mem == True): print("Memoria [kB]: ", f"{ans[2]:.3f}")    
-            # Print resultados
-            if len(info_req6) == 1:
-                print(info_req6)
-            else:  
-                print_req_7(info_req6)
-
-        elif int(inputs) == 8: # REQ 7 ----------------------------------------------------------
-            print("Ingresar coordenadas con '.' como decimal")
-            origen_lat = input("Inserta la latitud de origen: ")
-            origen_lon = input("Inserta la longitud de origen: ")
-            
-            destino_lat = input("Inserta la latitud de destino: ")
-            destino_lon = input("Inserta la longitud de destino: ")
-            
-            origen = (float(origen_lat), float(origen_lon))
-            destino = (float(destino_lat), float(destino_lon))
-
-            # Observar uso de memoria en la carga de datos -----------------------------------------
-            print("¿Desea observar el uso de memoria? (True/False)")
-            mem = input("Respuesta: ")
-            mem = castBoolean(mem)
-            # Ejecutar comando de cargar datos -----------------------------------------------------
-            ans = controller.req_7(control, origen, destino, memflag = mem)
-            info_req7 = ans[0]
-            # Print rendimiento
-            print("Tiempo [ms]: ", f"{ans[1]:.3f}")
-            if (mem == True): print("Memoria [kB]: ", f"{ans[2]:.3f}")    
-            # Print resultados
-            if len(info_req7) == 1:
-                print(info_req7)
-            else:  
-                print_req_7(info_req7)
+        elif int(inputs) == 8:
+            print_req_7(control)
 
         elif int(inputs) == 9:
             print_req_8(control)

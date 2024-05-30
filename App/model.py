@@ -24,7 +24,11 @@
  * Dario Correal - Version inicial
  """
 
+<<<<<<< HEAD
 import folium
+=======
+
+>>>>>>> e06e52157c7c3cf4690aa2ecf945794942c105d2
 import math
 import config as cf
 from DISClib.ADT import list as lt
@@ -49,7 +53,10 @@ from DISClib.Algorithms.Sorting import mergesort as merg
 from DISClib.Algorithms.Sorting import quicksort as quk
 from DISClib.Utils import error as error
 
+<<<<<<< HEAD
 from haversine import haversine, Unit
+=======
+>>>>>>> e06e52157c7c3cf4690aa2ecf945794942c105d2
 
 assert cf
 
@@ -72,7 +79,11 @@ def new_catalog():
     """
     #TODO: Inicializar las estructuras de datos
     try:
+<<<<<<< HEAD
         catalog = {
+=======
+        analyzer = {
+>>>>>>> e06e52157c7c3cf4690aa2ecf945794942c105d2
             'Aeropuerto': None,
             'vuelos': None,
             'vuelosComerciales': None,
@@ -80,6 +91,7 @@ def new_catalog():
             'vuelosMilitares': None,
             'tiempo':None
         }
+<<<<<<< HEAD
         # DICCIONARIOS     
         # diccionario de aeropuertos - csv
         catalog['Aeropuerto']= mp.newMap(numelements=14000,
@@ -102,10 +114,19 @@ def new_catalog():
         
         # GRAFOS     
         catalog['COM_T'] = gr.newGraph(datastructure='ADJ_LIST',
+=======
+        
+        analyzer['Aeropuerto']= mp.newMap(numelements=14000,
+                                          maptype="PROBING",
+                                          cmpfunction=compareAir)
+
+        analyzer['aeropuertos'] = gr.newGraph(datastructure='ADJ_LIST',
+>>>>>>> e06e52157c7c3cf4690aa2ecf945794942c105d2
                                               directed=True,
                                               size=14000,
                                               cmpfunction=compareAir)
 
+<<<<<<< HEAD
         catalog['COM_D'] = gr.newGraph(datastructure='ADJ_LIST',
                                               directed=True,
                                               size=14000,
@@ -115,10 +136,22 @@ def new_catalog():
                                               size=14000,
                                               cmpfunction=compareAir)
         catalog['MIL_COL_D'] = gr.newGraph(datastructure='ADJ_LIST',
+=======
+        analyzer['vuelosComerciales'] = gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=True,
+                                              size=14000,
+                                              cmpfunction=compareAir)
+        analyzer['vuelosCarga'] = gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=True,
+                                              size=14000,
+                                              cmpfunction=compareAir)
+        analyzer['vuelosMilitares'] = gr.newGraph(datastructure='ADJ_LIST',
+>>>>>>> e06e52157c7c3cf4690aa2ecf945794942c105d2
                                               directed=True,
                                               size=14000,
                                               cmpfunction=compareAir)
         
+<<<<<<< HEAD
         catalog['CARGA_D']=gr.newGraph(datastructure='ADJ_LIST',
                                               directed=True,
                                               size=14000,
@@ -129,12 +162,16 @@ def new_catalog():
                                               cmpfunction=compareAir)
         
         return catalog
+=======
+        return analyzer
+>>>>>>> e06e52157c7c3cf4690aa2ecf945794942c105d2
     except Exception as exp:
         error.reraise(exp, 'model:new_data_structs')
 
 
 # Funciones para agregar informacion al 
 
+<<<<<<< HEAD
 def add_data_airports(catalog, row):
     add_airport(catalog['Aeropuerto'], row['ICAO'], row)
     gr.xinsertVertex(catalog['COM_T'], row['ICAO'])
@@ -143,6 +180,116 @@ def add_data_airports(catalog, row):
         gr.insertVertex(catalog['MIL_COL_T'], row['ICAO'])
         gr.insertVertex(catalog['MIL_COL_D'], row['ICAO'])
     return catalog
+=======
+def addAirportConnection(analyzer, org, dst):
+    """
+    Adiciona los aeropuertos al grafo como vertices y arcos entre las
+    estaciones adyacentes.
+
+    Los vertices tienen por nombre el identificadol aeropuerto
+    seguido de la ruta que sirve.
+
+    """
+    try:
+        origin = org['ICAO']
+        destination = dst['ICAO']
+        
+        distance = float(haversine(org['LATITUD'],org['LONGITUD'],dst['LATITUD'],dst['LONGITUD']))
+        
+        addDistance(analyzer, origin)
+        addDistance(analyzer, destination)
+        addConnection(analyzer, origin, destination, distance)
+        addRouteAirport(analyzer, org)
+        addRouteAirport(analyzer, dst)
+        return analyzer
+    except Exception as exp:
+        error.reraise(exp, 'model:addAirportConnection')
+
+def haversine(lat1, lon1, lat2, lon2):
+    lat1_rad = math.radians(lat1)
+    lon1_rad = math.radians(lon1)
+    lat2_rad = math.radians(lat2)
+    lon2_rad = math.radians(lon2)
+    
+    dlat = lat2_rad - lat1_rad
+    dlon = lon2_rad - lon1_rad
+    
+    a = math.pow(math.sin(dlat / 2), 2) + math.cos(lat1_rad) * math.cos(lat2_rad) * math.pow(math.sin(dlon / 2), 2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    R = 6371
+    
+    return R * c
+
+def addDistance(analyzer, airport):
+    """
+    Adiciona una estación como un vertice del grafo
+    """
+    try:
+        if not gr.containsVertex(analyzer['aeropuertos'], airport):
+            gr.insertVertex(analyzer['aeropuertos'], airport)
+        return analyzer
+    except Exception as exp:
+        error.reraise(exp, 'model:addDistance')
+
+def addConnection(analyzer, origin, destination, distance):
+    """
+    Adiciona un arco entre dos aeropuertos
+    """
+    edge = gr.getEdge(analyzer['aeropuertos'], origin, destination)
+    if edge is None:
+        gr.addEdge(analyzer['aeropuertos'], origin, destination, distance)
+    return analyzer
+
+
+def addRouteAirport(analyzer, fligth):
+    """
+    Agrega a una estacion, una ruta que es servida en ese paradero
+    """
+    entry = mp.get(analyzer['aeropuertos'], fligth['ICAO'])
+    if entry is None:
+        lstroutes = lt.newList(cmpfunction=compareroutes)
+        lt.addLast(lstroutes, fligth['ICAO'])
+        mp.put(analyzer['stops'], fligth['ICAO'], lstroutes)
+    else:
+        lstroutes = entry['value']
+        info = fligth['ICAO']
+        if not lt.isPresent(lstroutes, info):
+            lt.addLast(lstroutes, info)
+    return analyzer
+
+
+
+
+
+
+
+
+
+
+
+def add_vertex(data_structs, data):
+    """
+    Función para agregar nuevos elementos a la lista
+    """
+    #TODO: Crear la función para agregar elementos a una lista
+    try:
+        if not gr.containsVertex(data_structs['aeropuerto'], data):
+            gr.insertVertex(data_structs['aeropuerto'], data)
+        return data_structs
+    except Exception as exp:
+        error.reraise(exp, 'model:addVertex')
+        
+def addVertex(analyzer, stopid):
+    """
+    Adiciona una estación como un vertice del grafo
+    """
+    try:
+        if not gr.containsVertex(analyzer['aeropuerto'], stopid):
+            gr.insertVertex(analyzer['aeropuerto'], stopid)
+        return analyzer
+    except Exception as exp:
+        error.reraise(exp, 'model:addVertex')        
+>>>>>>> e06e52157c7c3cf4690aa2ecf945794942c105d2
 
 def add_airport(map, airport, row, mode = 0):
     airports = map
@@ -734,6 +881,7 @@ def sort(data_structs):
     #TODO: Crear función de ordenamiento
     pass
 
+<<<<<<< HEAD
 def cmp_total_flights(oferta1, oferta2): # Comparacion para organizar aeropuertos por mayor numero de vuelos
     if (oferta1['Cantidad'] > oferta2['Cantidad']):
         return True
@@ -742,3 +890,6 @@ def cmp_total_flights(oferta1, oferta2): # Comparacion para organizar aeropuerto
             return True
         else: return False
     else: return False
+=======
+
+>>>>>>> e06e52157c7c3cf4690aa2ecf945794942c105d2
