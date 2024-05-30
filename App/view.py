@@ -45,7 +45,8 @@ def new_controller():
         Se crea una instancia del controlador
     """
     #TODO: Llamar la función del controlador donde se crean las estructuras de datos
-    pass
+    control = controller.new_controller()
+    return control
 
 
 def print_menu():
@@ -62,61 +63,349 @@ def print_menu():
     print("0- Salir")
 
 
-def load_data(control):
+def load_data(control, memflag):
     """
     Carga los datos
     """
     #TODO: Realizar la carga de datos
-    pass
+    ans = controller.load_data(control, memflag)
+    return ans
 
 
-def print_data(control, id):
+def print_load_data(list):
     """
         Función que imprime un dato dado su ID
     """
     #TODO: Realizar la función para imprimir un elemento
-    pass
 
-def print_req_1(control):
+    table1 = []
+    table2 = []
+    header = ['Nombre','ICAO','Ciudad','Concurrencia']
+    table1.append(header)
+    table2.append(header)
+    airport1 = lt.subList(list, 1, 5)
+    airport2 = lt.subList(list, lt.size(list)-5+1, 5)
+
+    for airport in lt.iterator(airport1):
+        table1.append([airport['Nombre'],
+        airport['ICAO'],
+        airport['Ciudad'],
+        airport['Cantidad']])
+
+    for airport in lt.iterator(airport2):
+        table2.append([airport['Nombre'],
+        airport['ICAO'],
+        airport['Ciudad'],
+        airport['Cantidad']])
+        
+    return table1, table2
+
+def print_req_1(info_req1):
     """
         Función que imprime la solución del Requerimiento 1 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 1
-    pass
+    table = []
+    header = ['ICAO','Nombre','Ciudad','Pais', 'Tiempo']
+    table.append(header)
+    
+    dist_tot = 0
+    tiempo_tot = info_req1[6]
+    i = 1
+    
+    dist_tot = info_req1[5]
+    #1for tiempos in lt.iterator(info_req1[6]): tiempo_tot += tiempos 
+    
+    print("A continuacion, se muestran las distancias a recorrer")
+    print(info_req1[2], "[Km] Distancia del punto de origen al aeropuerto de origen",info_req1[1])
+    print(dist_tot, "[Km] Distancia de trayecto entre aeropuertos")
+    print(info_req1[4], "[Km] Distancia del aeropuerto de destino al punto de destino",info_req1[3])
+    
+    print("Se recorren", lt.size(info_req1[0]), "aeropuertos")
+    print("Se demora en recorrer",tiempo_tot,"min")
+    
+    for aeropuerto in lt.iterator(info_req1[0]):
+        if i <= lt.size(info_req1[5]):
+            table.append([me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['ICAO'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Nombre'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Ciudad'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Pais'],
+                        lt.getElement(info_req1[6],i),
+                        lt.getElement(info_req1[5],i)])
+        else:
+            table.append([me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['ICAO'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Nombre'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Ciudad'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Pais'],
+                        "",
+                        ""])
+        i += 1
+            
+    print(tabulate(table))
 
 
-def print_req_2(control):
+
+def print_req_2(info_req2):
     """
         Función que imprime la solución del Requerimiento 2 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 2
-    pass
+    table = []
+    header = ['ICAO','Nombre','Ciudad','Pais', 'Tiempo']
+    table.append(header)
+    
+    dist_tot = 0
+    tiempo_tot = info_req2[6]
+    i = 1
+    
+    dist_tot = info_req2[5]
+    #1for tiempos in lt.iterator(info_req1[6]): tiempo_tot += tiempos 
+    
+    print("A continuacion, se muestran las distancias a recorrer")
+    print(info_req2[2], "[Km] Distancia del punto de origen al aeropuerto de origen",info_req2[1])
+    print(dist_tot, "[Km] Distancia de trayecto entre aeropuertos")
+    print(info_req2[4], "[Km] Distancia del aeropuerto de destino al punto de destino",info_req2[3])
+    
+    print("Se recorren", lt.size(info_req2[0]), "aeropuertos")
+    print("Se demora en recorrer",tiempo_tot,"min")
+    
+    for aeropuerto in lt.iterator(info_req2[0]):
+        if i <= lt.size(info_req2[5]):
+            table.append([me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['ICAO'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Nombre'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Ciudad'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Pais'],
+                        lt.getElement(info_req2[6],i),
+                        lt.getElement(info_req2[5],i)])
+        else:
+            table.append([me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['ICAO'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Nombre'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Ciudad'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Pais'],
+                        "",
+                        ""])
+        i += 1
+            
+    print(tabulate(table))
 
 
-def print_req_3(control):
+def print_req_3(info_req3):
     """
         Función que imprime la solución del Requerimiento 3 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 3
-    pass
+    table = []
+    header = ['ICAO','Nombre','Ciudad','Pais', 'Tiempo']
+    table.append(header)
+    
+    dist_tot = 0
+    tiempo_tot = info_req3[6]
+    i = 1
+    
+    dist_tot = info_req3[5]
+    #1for tiempos in lt.iterator(info_req1[6]): tiempo_tot += tiempos 
+    
+    print("A continuacion, se muestran las distancias a recorrer")
+    print(info_req3[2], "[Km] Distancia del punto de origen al aeropuerto de origen",info_req3[1])
+    print(dist_tot, "[Km] Distancia de trayecto entre aeropuertos")
+    print(info_req3[4], "[Km] Distancia del aeropuerto de destino al punto de destino",info_req3[3])
+    
+    print("Se recorren", lt.size(info_req3[0]), "aeropuertos")
+    print("Se demora en recorrer",tiempo_tot,"min")
+    
+    for aeropuerto in lt.iterator(info_req3[0]):
+        if i <= lt.size(info_req3[5]):
+            table.append([me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['ICAO'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Nombre'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Ciudad'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Pais'],
+                        lt.getElement(info_req3[6],i),
+                        lt.getElement(info_req3[5],i)])
+        else:
+            table.append([me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['ICAO'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Nombre'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Ciudad'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Pais'],
+                        "",
+                        ""])
+        i += 1
+            
+    print(tabulate(table))
 
 
-def print_req_4(control):
+def print_req_4(control, mode=1):
     """
         Función que imprime la solución del Requerimiento 4 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 4
-    pass
+    distancia_total = 0
+    print("El aeropuerto de mayor importancia segun la concurrencia CARGA es:")
+    
+    table = []
+    header = ['ICAO','Nombre','Ciudad','Pais', 'Concurrencia Carga']
+    header1 = ['A->B',
+               'Nombre Origen','Ciudad Origen','Pais Origen',
+               'Nombre Destino','Ciudad Destino','Pais Destino',
+               'Distancia recorrida [Km]','Tiempo del trayecto [min]', 'Tipo de aeronave']
+    table.append(header)
+    table.append([me.getValue(mp.get(control['model']['Aeropuerto_CAR'],info_req4[0]))['ICAO'],
+                  me.getValue(mp.get(control['model']['Aeropuerto_CAR'],info_req4[0]))['Nombre'],
+                  me.getValue(mp.get(control['model']['Aeropuerto_CAR'],info_req4[0]))['Ciudad'],
+                  me.getValue(mp.get(control['model']['Aeropuerto_CAR'],info_req4[0]))['Pais'],
+                  me.getValue(mp.get(control['model']['Aeropuerto_CAR'],info_req4[0]))['Cantidad']])
+    print(tabulate(table))
+    for distancias_trayecto in lt.iterator(info_req4[5]):
+        for distancia in lt.iterator(distancias_trayecto): distancia_total += float(distancia)
+        
+    print("El numero total de trayectos:", lt.size(info_req4[2]))
+    print("La distancia total de los trayectos: ", distancia_total)
+    j = 1
+    if (mode == 1):   
+        
+        for camino in lt.iterator(info_req4[6]):
+            i = 1
+            table1 = []
+            table1.append(header1)
+            camino_size = st.size(camino)
+            origen = None
+            destino = None
+            
+            while st.isEmpty(camino) == False:
+                actual = st.pop(camino)
+                
+                if (i == 1): 
+                    origen = actual['vertexA']
+                if (i == camino_size): 
+                    destino = actual['vertexB']
+    
+                table1.append([(actual['vertexA'],"->",actual['vertexB']),
+                               me.getValue(mp.get(control['model']['Aeropuerto_CAR'],actual['vertexA']))['Nombre'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_CAR'],actual['vertexA']))['Ciudad'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_CAR'],actual['vertexA']))['Pais'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_CAR'],actual['vertexB']))['Nombre'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_CAR'],actual['vertexB']))['Ciudad'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_CAR'],actual['vertexB']))['Pais'],
+                               lt.getElement(lt.getElement(info_req4[5],j),i),
+                               lt.getElement(lt.getElement(info_req4[4],j),i),
+                               lt.getElement(lt.getElement(info_req4[7],j),i)])
+                i += 1
+            j += 1
+            print("Trayecto total", origen, "->", destino)
+            print(tabulate(table1))
+
+    else:
+        
+        for camino in lt.iterator(info_req4[2]):
+            table1 = []
+            table1.append(header1)
+            origen = lt.firstElement(camino)
+            destino = lt.lastElement(camino)
+            print("Trayecto Total",origen,"->",destino)
+            distancia_tot = 0
+            naves = []
+            for distancia in lt.iterator(lt.getElement(info_req5[5],j)): distancia_tot += float(distancia)
+            for nave in lt.iterator(lt.getElement(info_req5[7],j)): naves.append(nave)
+            
+            table1.append([(origen,"->",destino),
+                            me.getValue(mp.get(control['model']['Aeropuerto_CAR'],origen))['Nombre'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_CAR'],origen))['Ciudad'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_CAR'],origen))['Pais'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_CAR'],destino))['Nombre'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_CAR'],destino))['Ciudad'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_CAR'],destino))['Pais'],
+                            distancia_tot,
+                            lt.getElement(info_req4[3],j),
+                            naves])
+            print(tabulate(table1))
+            j += 1    
 
 
-def print_req_5(control):
+def print_req_5(info_req5, mode = 0):
     """
         Función que imprime la solución del Requerimiento 5 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 5
-    pass
+    distancia_total = 0
+    print("El aeropuerto de mayor importancia segun la concurrencia militar es:")
+    
+    table = []
+    header = ['ICAO','Nombre','Ciudad','Pais', 'Concurrencia Militar']
+    header1 = ['A->B',
+               'Nombre Origen','Ciudad Origen','Pais Origen',
+               'Nombre Destino','Ciudad Destino','Pais Destino',
+               'Distancia recorrida [Km]','Tiempo del trayecto [min]', 'Tipo de aeronave']
+    table.append(header)
+    table.append([me.getValue(mp.get(control['model']['Aeropuerto_MIL'],info_req5[0]))['ICAO'],
+                  me.getValue(mp.get(control['model']['Aeropuerto_MIL'],info_req5[0]))['Nombre'],
+                  me.getValue(mp.get(control['model']['Aeropuerto_MIL'],info_req5[0]))['Ciudad'],
+                  me.getValue(mp.get(control['model']['Aeropuerto_MIL'],info_req5[0]))['Pais'],
+                  me.getValue(mp.get(control['model']['Aeropuerto_MIL'],info_req5[0]))['Cantidad']])
+    print(tabulate(table))
+    for distancias_trayecto in lt.iterator(info_req5[5]):
+        for distancia in lt.iterator(distancias_trayecto): distancia_total += float(distancia)
+        
+    print("El numero total de trayectos:", lt.size(info_req5[2]))
+    print("La distancia total de los trayectos: ", distancia_total)
+    j = 1
+    if (mode == 1):   
+        
+        for camino in lt.iterator(info_req5[6]):
+            i = 1
+            table1 = []
+            table1.append(header1)
+            camino_size = st.size(camino)
+            origen = None
+            destino = None
+            
+            while st.isEmpty(camino) == False:
+                actual = st.pop(camino)
+                
+                if (i == 1): 
+                    origen = actual['vertexA']
+                if (i == camino_size): 
+                    destino = actual['vertexB']
+    
+                table1.append([(actual['vertexA'],"->",actual['vertexB']),
+                               me.getValue(mp.get(control['model']['Aeropuerto_MIL'],actual['vertexA']))['Nombre'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_MIL'],actual['vertexA']))['Ciudad'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_MIL'],actual['vertexA']))['Pais'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_MIL'],actual['vertexB']))['Nombre'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_MIL'],actual['vertexB']))['Ciudad'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_MIL'],actual['vertexB']))['Pais'],
+                               lt.getElement(lt.getElement(info_req5[5],j),i),
+                               lt.getElement(lt.getElement(info_req5[4],j),i),
+                               lt.getElement(lt.getElement(info_req5[7],j),i)])
+                i += 1
+            j += 1
+            print("Trayecto total", origen, "->", destino)
+            print(tabulate(table1))
 
-
+    else:
+        
+        for camino in lt.iterator(info_req5[2]):
+            table1 = []
+            table1.append(header1)
+            origen = lt.firstElement(camino)
+            destino = lt.lastElement(camino)
+            print("Trayecto Total",origen,"->",destino)
+            distancia_tot = 0
+            naves = []
+            for distancia in lt.iterator(lt.getElement(info_req5[5],j)): distancia_tot += float(distancia)
+            for nave in lt.iterator(lt.getElement(info_req5[7],j)): naves.append(nave)
+            
+            table1.append([(origen,"->",destino),
+                            me.getValue(mp.get(control['model']['Aeropuerto_MIL'],origen))['Nombre'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_MIL'],origen))['Ciudad'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_MIL'],origen))['Pais'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_MIL'],destino))['Nombre'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_MIL'],destino))['Ciudad'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_MIL'],destino))['Pais'],
+                            distancia_tot,
+                            lt.getElement(info_req5[3],j),
+                            naves])
+            print(tabulate(table1))
+            j += 1
+            
 def print_req_6(control):
     """
         Función que imprime la solución del Requerimiento 6 en consola
@@ -125,12 +414,46 @@ def print_req_6(control):
     pass
 
 
-def print_req_7(control):
+def print_req_7(info_req7):
     """
         Función que imprime la solución del Requerimiento 7 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 7
-    pass
+    table = []
+    header = ['ICAO','Nombre','Ciudad','Pais', 'Tiempo', 'Distancia']
+    table.append(header)
+    
+    dist_tot = 0
+    i = 1
+    
+    for distancia in lt.iterator(info_req7[5]): dist_tot += distancia  
+    
+    print("A continuacion, se muestran las distancias a recorrer")
+    print(info_req7[2], "[Km] Distancia del punto de origen al aeropuerto de origen",info_req7[1])
+    print(dist_tot, "[Km] Distancia de trayecto entre aeropuertos")
+    print(info_req7[4], "[Km] Distancia del aeropuerto de destino al punto de destino",info_req7[3])
+    
+    print("Se recorren", lt.size(info_req7[0]), "aeropuertos")
+    print("Se demora en recorrer",info_req7[6],"min")
+    
+    for aeropuerto in lt.iterator(info_req7[0]):
+        if i <= lt.size(info_req7[5]):
+            table.append([me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['ICAO'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Nombre'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Ciudad'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Pais'],
+                        lt.getElement(info_req7[7],i),
+                        lt.getElement(info_req7[5],i)])
+        else:
+            table.append([me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['ICAO'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Nombre'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Ciudad'],
+                        me.getValue(mp.get(control['model']['Aeropuerto_COM'],aeropuerto))['Pais'],
+                        "",
+                        ""])
+        i += 1
+            
+    print(tabulate(table))
 
 
 def print_req_8(control):
@@ -140,7 +463,25 @@ def print_req_8(control):
     # TODO: Imprimir el resultado del requerimiento 8
     pass
 
+def printLoadDataAnswer(answer):
+    """
+    Imprime los datos de tiempo y memoria de la carga de datos
+    """
+    if isinstance(answer, (list, tuple)) is True:
+        print("Tiempo [ms]: ", f"{answer[0]:.3f}", "||",
+              "Memoria [kB]: ", f"{answer[1]:.3f}")
+    else:
+        print("Tiempo [ms]: ", f"{answer:.3f}")
 
+def castBoolean(value):
+    """
+    Convierte un valor a booleano
+    """
+    if value in ('True', 'true', 'TRUE', 'T', 't', '1', True):
+        return True
+    else:
+        return False
+    
 # Se crea el controlador asociado a la vista
 control = new_controller()
 
@@ -154,29 +495,180 @@ if __name__ == "__main__":
     while working:
         print_menu()
         inputs = input('Seleccione una opción para continuar\n')
-        if int(inputs) == 1:
+        if int(inputs) == 1: # CARGA DE DATOS ------------------------------------------------------
             print("Cargando información de los archivos ....\n")
-            data = load_data(control)
-        elif int(inputs) == 2:
-            print_req_1(control)
+            # Observar uso de memoria en la carga de datos -----------------------------------------
+            print("Desea observar el uso de memoria? (True/False)")
+            mem = input("Respuesta: ")
+            mem = castBoolean(mem)
+            # Ejecutar comando de cargar datos -----------------------------------------------------
+            ans = load_data(control, memflag=mem)
+            printLoadDataAnswer(ans[1])
+            # Cantidad de datos guardados ----------------------------------------------------------
+            print('Aeropuertos cargados: ' + str(controller.airport_size(control))) 
+            print('Vuelos cargados: ' + str(controller.flight_size(control))) 
+            # VISUALIZADOR CARGA DE DATOS ----------------------------------------------------------
+            tipos = ['Comercial','Militar','Carga']
+            i = 0
+            for tipo in ans[0]:
+                table1, table2 = print_load_data(tipo)
+                print("Primeros y ultimos 5 aeropuertos de concurrencia " + tipos[i])
+                print(tabulate(table1))
+                print(tabulate(table2))
+                i += 1
+                
+        elif int(inputs) == 2: # REQ 1 ----------------------------------------------------------
+            print("Ingresar coordenadas con '.' como decimal")
+            origen_lat = input("Inserta la latitud de origen: ")
+            origen_lon = input("Inserta la longitud de origen: ")
+            
+            destino_lat = input("Inserta la latitud de destino: ")
+            destino_lon = input("Inserta la longitud de destino: ")
+            
+            origen = (float(origen_lat), float(origen_lon))
+            destino = (float(destino_lat), float(destino_lon))
 
-        elif int(inputs) == 3:
-            print_req_2(control)
+            # Observar uso de memoria en la carga de datos -----------------------------------------
+            print("Desea observar el uso de memoria? (True/False)")
+            mem = input("Respuesta: ")
+            mem = castBoolean(mem)
+            # Ejecutar comando de cargar datos -----------------------------------------------------
+            ans = controller.req_1(control, origen, destino, memflag = mem)
+            info_req1 = ans[0]
+            # Print rendimiento
+            print("Tiempo [ms]: ", f"{ans[1]:.3f}")
+            if (mem == True): print("Memoria [kB]: ", f"{ans[2]:.3f}")    
+            # Print resultados
+            if len(info_req1) == 1:
+                print(info_req1)
+            else:  
+                print_req_1(info_req1)             
+            
+        elif int(inputs) == 3: # REQ 3 ----------------------------------------------------------
+            print("Ingresar coordenadas con '.' como decimal")
+            origen_lat = input("Inserta la latitud de origen: ")
+            origen_lon = input("Inserta la longitud de origen: ")
+            
+            destino_lat = input("Inserta la latitud de destino: ")
+            destino_lon = input("Inserta la longitud de destino: ")
+            
+            origen = (float(origen_lat), float(origen_lon))
+            destino = (float(destino_lat), float(destino_lon))
 
-        elif int(inputs) == 4:
-            print_req_3(control)
+            # Observar uso de memoria en la carga de datos -----------------------------------------
+            print("Desea observar el uso de memoria? (True/False)")
+            mem = input("Respuesta: ")
+            mem = castBoolean(mem)
+            # Ejecutar comando de cargar datos -----------------------------------------------------
+            ans = controller.req_2(control, origen, destino, memflag = mem)
+            info_req2 = ans[0]
+            # Print rendimiento
+            print("Tiempo [ms]: ", f"{ans[1]:.3f}")
+            if (mem == True): print("Memoria [kB]: ", f"{ans[2]:.3f}")    
+            # Print resultados
+            if len(info_req2) == 2:
+                print(info_req2)
+            else:  
+                print_req_2(info_req2)
 
-        elif int(inputs) == 5:
-            print_req_4(control)
+        elif int(inputs) == 4: # REQ 3 ----------------------------------------------------------
 
-        elif int(inputs) == 6:
-            print_req_5(control)
+            print("Desea observar el uso de memoria? (True/False)")
+            mem = input("Respuesta: ")
+            mem = castBoolean(mem)
+            # Ejecutar comando de cargar datos -----------------------------------------------------
+            ans = controller.req_3(control,memflag = mem)
+            info_req3 = ans[0]
+            # Print rendimiento
+            print("Tiempo [ms]: ", f"{ans[1]:.3f}")
+            if (mem == True): print("Memoria [kB]: ", f"{ans[2]:.3f}")    
+            # Print resultados
+            if len(info_req3) == 1:
+                print(info_req3)
+            else:  
+                print_req_1(info_req3)
 
-        elif int(inputs) == 7:
-            print_req_6(control)
+        elif int(inputs) == 5: # REQ 4 ----------------------------------------------------------
 
-        elif int(inputs) == 8:
-            print_req_7(control)
+            print("Desea observar el uso de memoria? (True/False)")
+            mem = input("Respuesta: ")
+            mem = castBoolean(mem)
+            # Ejecutar comando de cargar datos -----------------------------------------------------
+            ans = controller.req_4(control,memflag = mem)
+            info_req4 = ans[0]
+            # Print rendimiento
+            print("Tiempo [ms]: ", f"{ans[1]:.3f}")
+            if (mem == True): print("Memoria [kB]: ", f"{ans[2]:.3f}")    
+            # Print resultados
+            if len(info_req4) == 1:
+                print(info_req4)
+            else:  
+                print_req_4(info_req4)
+
+        elif int(inputs) == 6: # REQ 5 -------------------------------------------------------------
+            print("Determinar red de respuesta militar de menor tiempo")
+            # Observar uso de memoria en la carga de datos -----------------------------------------
+            print("Desea observar el uso de memoria? (True/False)")
+            mem = input("Respuesta: ")
+            mem = castBoolean(mem)
+            # Ejecutar comando de cargar datos -----------------------------------------------------
+            ans = controller.req_5(control, memflag = mem)
+            info_req5 = ans[0]
+            # Print rendimiento
+            print("Tiempo [ms]: ", f"{ans[1]:.3f}")
+            if (mem == True): print("Memoria [kB]: ", f"{ans[2]:.3f}")    
+            # Print resultados
+            if len(info_req5) == 1:
+                print(info_req5)
+            else:  
+                print_req_5(info_req5)  
+
+        elif int(inputs) == 7: # REQ 6 ----------------------------------------------------------
+            n=input("Ingresar la cantidad de aeropuertos más importantes en Colombia que se desea cubrir: ")
+       
+
+            # Observar uso de memoria en la carga de datos -----------------------------------------
+            print("¿Desea observar el uso de memoria? (True/False)")
+            mem = input("Respuesta: ")
+            mem = castBoolean(mem)
+            # Ejecutar comando de cargar datos -----------------------------------------------------
+            ans = controller.req_6(control, n, memflag = mem)
+            info_req6 = ans[0]
+            # Print rendimiento
+            print("Tiempo [ms]: ", f"{ans[1]:.3f}")
+            if (mem == True): print("Memoria [kB]: ", f"{ans[2]:.3f}")    
+            # Print resultados
+            if len(info_req6) == 1:
+                print(info_req6)
+            else:  
+                print_req_7(info_req6)
+
+        elif int(inputs) == 8: # REQ 7 ----------------------------------------------------------
+            print("Ingresar coordenadas con '.' como decimal")
+            origen_lat = input("Inserta la latitud de origen: ")
+            origen_lon = input("Inserta la longitud de origen: ")
+            
+            destino_lat = input("Inserta la latitud de destino: ")
+            destino_lon = input("Inserta la longitud de destino: ")
+            
+            origen = (float(origen_lat), float(origen_lon))
+            destino = (float(destino_lat), float(destino_lon))
+
+            # Observar uso de memoria en la carga de datos -----------------------------------------
+            print("¿Desea observar el uso de memoria? (True/False)")
+            mem = input("Respuesta: ")
+            mem = castBoolean(mem)
+            # Ejecutar comando de cargar datos -----------------------------------------------------
+            ans = controller.req_7(control, origen, destino, memflag = mem)
+            info_req7 = ans[0]
+            # Print rendimiento
+            print("Tiempo [ms]: ", f"{ans[1]:.3f}")
+            if (mem == True): print("Memoria [kB]: ", f"{ans[2]:.3f}")    
+            # Print resultados
+            if len(info_req7) == 1:
+                print(info_req7)
+            else:  
+                print_req_7(info_req7)
 
         elif int(inputs) == 9:
             print_req_8(control)
