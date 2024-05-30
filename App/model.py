@@ -24,9 +24,8 @@
  * Dario Correal - Version inicial
  """
 
-
+import folium
 import math
-import time
 import config as cf
 from DISClib.ADT import list as lt
 from DISClib.ADT import stack as st
@@ -81,9 +80,6 @@ def new_catalog():
             'vuelosMilitares': None,
             'tiempo':None
         }
-        # LISTAS     
-        catalog['airports'] = lt.newList(datastructure='ARRAY_LIST')
-        catalog['fligths'] = lt.newList(datastructure='ARRAY_LIST')      
         # DICCIONARIOS     
         # diccionario de aeropuertos - csv
         catalog['Aeropuerto']= mp.newMap(numelements=14000,
@@ -114,11 +110,20 @@ def new_catalog():
                                               directed=True,
                                               size=14000,
                                               cmpfunction=compareAir)
-        catalog['vuelosCarga'] = gr.newGraph(datastructure='ADJ_LIST',
+        catalog['MIL_COL_T'] = gr.newGraph(datastructure='ADJ_LIST',
                                               directed=True,
                                               size=14000,
                                               cmpfunction=compareAir)
-        catalog['vuelosMilitares'] = gr.newGraph(datastructure='ADJ_LIST',
+        catalog['MIL_COL_D'] = gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=True,
+                                              size=14000,
+                                              cmpfunction=compareAir)
+        
+        catalog['CARGA_D']=gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=True,
+                                              size=14000,
+                                              cmpfunction=compareAir)
+        catalog['CARGA_T']=gr.newGraph(datastructure='ADJ_LIST',
                                               directed=True,
                                               size=14000,
                                               cmpfunction=compareAir)
@@ -128,13 +133,15 @@ def new_catalog():
         error.reraise(exp, 'model:new_data_structs')
 
 
-# Funciones para agregar informacion al grafo
+# Funciones para agregar informacion al 
 
 def add_data_airports(catalog, row):
     add_airport(catalog['Aeropuerto'], row['ICAO'], row)
-    lt.addLast(catalog['airports'], row) 
-    gr.insertVertex(catalog['COM_T'], row['ICAO'])
+    gr.xinsertVertex(catalog['COM_T'], row['ICAO'])
     gr.insertVertex(catalog['COM_D'], row['ICAO'])
+    if (row['PAIS'] == "Colombia"):
+        gr.insertVertex(catalog['MIL_COL_T'], row['ICAO'])
+        gr.insertVertex(catalog['MIL_COL_D'], row['ICAO'])
     return catalog
 
 def add_airport(map, airport, row, mode = 0):
@@ -195,11 +202,27 @@ def add_data_flights(catalog, row):
     elif (row['TIPO_VUELO'] == 'MILITAR'):
         add_airport(catalog['Aeropuerto_MIL'], row['ORIGEN'], row, 1)
         add_airport(catalog['Aeropuerto_MIL'], row['DESTINO'], row, 2)
-    elif (row['TIPO_VUELO'] == 'AVIACION_CARGA'): 
+        
+        if (gr.containsVertex(catalog['MIL_COL_T'], row['ORIGEN']) and gr.containsVertex(catalog['MIL_COL_T'], row['DESTINO'])):
+            gr.addEdge(catalog['MIL_COL_T'], row['ORIGEN'], row['DESTINO'], float(row['TIEMPO_VUELO']))
+            gr.addEdge(catalog['MIL_COL_D'], row['ORIGEN'], row['DESTINO'], 
+                    haversine((me.getValue(mp.get(catalog['Aeropuerto_MIL'],row['ORIGEN']))['Latitud'],
+                                me.getValue(mp.get(catalog['Aeropuerto_MIL'],row['ORIGEN']))['Longitud']),
+                                (me.getValue(mp.get(catalog['Aeropuerto_MIL'],row['DESTINO']))['Latitud'],
+                                me.getValue(mp.get(catalog['Aeropuerto_MIL'],row['DESTINO']))['Longitud'])))
+    elif (row['TIPO_VUELO'] == 'AVIACION_CARGA'):
         add_airport(catalog['Aeropuerto_CAR'], row['ORIGEN'], row, 1)
         add_airport(catalog['Aeropuerto_CAR'], row['DESTINO'], row, 2)
-    lt.addLast(catalog['fligths'], row)
-
+        
+        if (gr.containsVertex(catalog['CARGA_T'], row['ORIGEN']) and gr.containsVertex(catalog['CARGA_T'], row['DESTINO'])):
+            gr.addEdge(catalog['CARGA_T'], row['ORIGEN'], row['DESTINO'], float(row['TIEMPO_VUELO']))
+            gr.addEdge(catalog['CARGA_D'], row['ORIGEN'], row['DESTINO'], 
+                    haversine((me.getValue(mp.get(catalog['Aeropuerto_CAR'],row['ORIGEN']))['Latitud'],
+                                me.getValue(mp.get(catalog['Aeropuerto_CAR'],row['ORIGEN']))['Longitud']),
+                                (me.getValue(mp.get(catalog['Aeropuerto_CAR'],row['DESTINO']))['Latitud'],
+                                me.getValue(mp.get(catalog['Aeropuerto_CAR'],row['DESTINO']))['Longitud'])))
+            
+    
     return catalog
 
 def show_data(map):
@@ -245,10 +268,11 @@ def data_size(data_structs):
     pass
 
 def airport_size(catalog):
-    return lt.size(catalog['airports'])
+    return gr.numVertices(catalog['COM_T'])
 
 def flight_size(catalog):
-    return lt.size(catalog['fligths'])
+    total = (gr.numEdges(catalog['COM_T'])) # COMPLETAR CON VUELOS MIL Y CAR
+    return total 
 
 def req_1(catalog, origen, destino): # REQ 1 ----------------------------------------------------------
     """
@@ -364,116 +388,232 @@ def get_stack_req2(catalog, pila):
 
     return camino, tiempo, distancia
 
-
 def req_3(catalog):
+    """
+    Función que soluciona el requerimiento 3 utilizando el algoritmo de Prim.
     
     """
-    Función que soluciona el requerimiento 3
-    """
-    # TODO: Realizar el requerimiento 3
+    max_concurrencia = 0
+    aero_max = None
+    distancias_tot = 0
+    trayectos_totales = 0
+    caminos = []
 
-    aeropuertos = mp.valueSet(catalog['Aeropuerto_COM'])
-    # Encuentra el aeropuerto con mayor concurrencia comercial usando la clave 'Cantidad'
-    importante = max(aeropuertos, key=lambda x: catalog[x]['Cantidad'])
+    aeropuertos_carga = gr.vertices(catalog['CARGA_D'])
 
-    # Calcula la suma de la distancia total de los trayectos
-    suma_distancia_total = 0
-    num_trayectos_posibles = 0
-    trayectos = []
+    for aeropuerto in lt.iterator(aeropuertos_carga):
+        concurrencia = mp.getValue(mp.get(catalog['Aeropuerto_CAR'], aeropuerto))['Cantidad']
+        if concurrencia > max_concurrencia or (concurrencia == max_concurrencia and aeropuerto < aero_max):
+            max_concurrencia = concurrencia
+            aero_max = aeropuerto
+    
+    mst = prim.PrimMST(catalog['CARGA_D'], aero_max)
 
-    for vuelo in lt.iterator(me.getValue(mp.get(catalog['Aeropuerto_COM'], importante))['Vuelos_origen']):
-        destino = vuelo['DESTINO']
-        distancia = haversine((me.getValue(mp.get(catalog['Aeropuerto_COM'], vuelo['ORIGEN']))['Latitud'],
-                              me.getValue(mp.get(catalog['Aeropuerto_COM'], vuelo['ORIGEN']))['Longitud']),
-                             (me.getValue(mp.get(catalog['Aeropuerto_COM'], vuelo['DESTINO']))['Latitud'],
-                              me.getValue(mp.get(catalog['Aeropuerto_COM'], vuelo['DESTINO']))['Longitud']))
-        suma_distancia_total += distancia
-        num_trayectos_posibles += 1
-        trayectos.append({
-            'origen': vuelo['ORIGEN'],
-            'destino': destino,
-            'distancia': distancia,
-            'tiempo': vuelo['TIEMPO_VUELO']
-        })
+    trayectos_totales = gr.numVertices(catalog['CARGA_D']) - 1
 
-    return importante, suma_distancia_total, num_trayectos_posibles, trayectos
+    distancias_tot = prim.weightMST(catalog['CARGA_D'], mst)
 
 
+    trayectos = prim.edgesMST(mst,aero_max)
+    caminos=trayectos
+
+    return aero_max, max_concurrencia, distancias_tot, trayectos_totales, caminos
 
 
 def req_4(catalog):
     """
-    Función que soluciona el requerimiento 4
+    Función que soluciona el requerimiento 4.
+    
     """
-    # TODO: Realizar el requerimiento 4
+    max_concurrencia = 0
+    aero_max = None
+    destinos = lt.newList('ARRAY_LIST')
+    tiempos_tot = lt.newList('ARRAY_LIST')
+    distancias_tot = 0
+    trayectos_totales = 0
+    caminos = lt.newList('ARRAY_LIST')
+    aeronaves = lt.newList('ARRAY_LIST')
 
-    aeropuertos = mp.valueSet(catalog['Aeropuerto_CAR'])  # Usamos el mapa de aeropuertos de carga
-    importante = max(aeropuertos, key=lambda x: catalog[x]['Cantidad']) #Revisar si hay alguna función de máximos en la librería para no usar lambda
-
-    suma_distancia_total = 0
-    num_trayectos_posibles = 0
-    trayectos = []
-
-    for vuelo in lt.iterator(me.getValue(mp.get(catalog['Aeropuerto_CAR'], importante))['Vuelos_origen']):
-        destino = vuelo['DESTINO']
-        distancia = haversine((me.getValue(mp.get(catalog['Aeropuerto_CAR'], vuelo['ORIGEN']))['Latitud'],
-                              me.getValue(mp.get(catalog['Aeropuerto_CAR'], vuelo['ORIGEN']))['Longitud']),
-                             (me.getValue(mp.get(catalog['Aeropuerto_CAR'], vuelo['DESTINO']))['Latitud'],
-                              me.getValue(mp.get(catalog['Aeropuerto_CAR'], vuelo['DESTINO']))['Longitud']))
-        suma_distancia_total += distancia
-        num_trayectos_posibles += 1
-        trayectos.append({
-            'origen': vuelo['ORIGEN'],
-            'destino': destino,
-            'distancia': distancia,
-            'tiempo': vuelo['TIEMPO_VUELO'],
-            'tipo_aeronave': vuelo['TIPO_AERONAVE']  # Asumiendo que esta información está disponible en el diccionario del vuelo
-        })
+    aeropuertos_carga = gr.vertices(catalog['CARGA_D'])# Obtener lista de aeropuertos de carga
 
 
-    return importante, suma_distancia_total, num_trayectos_posibles, trayectos
+    # Encontrar aeropuerto con mayor concurrencia de carga
+    for aeropuerto in lt.iterator(aeropuertos_carga):
+        concurrencia = me.getValue(mp.get(catalog['Aeropuerto_CAR'], aeropuerto))['Cantidad']
+        if concurrencia > max_concurrencia or (concurrencia == max_concurrencia and aeropuerto < aero_max):
+            max_concurrencia = concurrencia
+            aero_max = aeropuerto
+    
+    search = djk.Dijkstra(catalog['CARGA_D'], aero_max)
+    for aeropuerto in lt.iterator(aeropuertos_carga):
+        if aeropuerto != aero_max:
+            camino = djk.pathTo(search, aeropuerto)
+            if camino is not None: 
+                trayectos_totales += 1
+                lt.addLast(caminos, camino)
+                lt.addLast(tiempos_tot, djk.distTo(search, aeropuerto))
+                lt.addLast(destinos, aeropuerto)
 
+                # Calcular distancia total
+                distancias_tot += djk.distTo(search, aeropuerto)
 
+                # Obtener información de los vuelos
+                info = get_stack_req4(catalog, camino)
+                lt.addLast(distancias_tot, info[2])
+                lt.addLast(aeronaves, info[3])
+                
+    return aero_max, destinos, distancias_tot, trayectos_totales, caminos
+
+def get_stack_req4(catalog, pila):
+    """
+    Función auxiliar que obtiene información detallada de los trayectos encontrados.
+    """
+    camino = lt.newList('ARRAY_LIST')
+    tiempo = lt.newList('ARRAY_LIST')
+    distancia = lt.newList('ARRAY_LIST')
+    aeronave = lt.newList('ARRAY_LIST')
+    
+    while not st.isEmpty(pila):
+        actual = st.pop(pila)
+        lt.addLast(camino, actual['vertexB'])
+        for vuelo in lt.iterator(me.getValue(mp.get(catalog['Aeropuerto_CAR'], actual['vertexA']))['Vuelos_origen']):
+            if vuelo['DESTINO'] == actual['vertexB']:
+                lt.addLast(tiempo, float(vuelo['TIEMPO_VUELO']))
+                lt.addLast(distancia, haversine((me.getValue(mp.get(catalog['Aeropuerto_CAR'],vuelo['ORIGEN']))['Latitud'],
+                             me.getValue(mp.get(catalog['Aeropuerto_CAR'],vuelo['ORIGEN']))['Longitud']),
+                             (me.getValue(mp.get(catalog['Aeropuerto_CAR'],vuelo['DESTINO']))['Latitud'],
+                             me.getValue(mp.get(catalog['Aeropuerto_CAR'],vuelo['DESTINO']))['Longitud'])))
+                lt.addLast(aeronave, vuelo['TIPO_AERONAVE'])
+                
+    return camino, tiempo, distancia, aeronave
 
 def req_5(catalog):
     """
     Función que soluciona el requerimiento 5
     """
     # TODO: Realizar el requerimiento 5
+    max = 0
+    aero_max = None
+    destinos = lt.newList('ARRAY_LIST')
+    tiempos_tot = lt.newList('ARRAY_LIST')
+    distancias = lt.newList('ARRAY_LIST')
+    tiempos = lt.newList('ARRAY_LIST')
+    caminos = lt.newList('ARRAY_LIST')
+    aeronaves = lt.newList('ARRAY_LIST')
+
     
-    militares = mp.valueSet(catalog['Aeropuerto_MIL'])
-    aeropuerto_importante = max(militares, key=lambda x: catalog[x]['Cantidad'], default=None)
-    if aeropuerto_importante is None:
-        raise ValueError("No se encontraron rutas.")
+    aeropuertos = gr.vertices(catalog['MIL_COL_T'])
+    
+    
+    for aeropuerto in lt.iterator(aeropuertos): # Obtener aeropuerto de mayor concurrencia militar
+        if me.getValue(mp.get(catalog['Aeropuerto_MIL'], aeropuerto))['Cantidad'] >= max:
+            max = me.getValue(mp.get(catalog['Aeropuerto_MIL'],aeropuerto))['Cantidad'] # concurrencia
+            aero_max = aeropuerto  # aeropuerto 
+    
+    search = djk.Dijkstra(catalog['MIL_COL_T'], aero_max)
+    for aeropuerto in lt.iterator(aeropuertos):
+        if aeropuerto != aero_max:
+            camino = djk.pathTo(search, aeropuerto)
+            if camino != None: 
+                lt.addLast(tiempos_tot, djk.distTo(search, aeropuerto))
+                lt.addLast(caminos, djk.pathTo(search, aeropuerto))
 
-    suma_distancia_total = 0
-    num_trayectos_posibles = 0
-    trayectos = []
+                info = get_stack_req5(catalog, camino)
+                lt.addLast(destinos, info[0])
+                lt.addLast(tiempos, info[1])
+                lt.addLast(distancias, info[2])
+                lt.addLast(aeronaves, info[3])
+                
+    return aero_max, max, destinos, tiempos_tot, tiempos, distancias, caminos, aeronaves
 
-    for vuelo in lt.iterator(me.getValue(mp.get(catalog['Aerpuerto_MIL'], aeropuerto_importante))['Vuelos_origen']):
-        destino = vuelo['DESTINO']
-        distancia = haversine((me.getValue(mp.get(catalog['Aerpuerto_MIL'], vuelo['ORIGEN']))['Latitud'],
-                              me.getValue(mp.get(catalog['Aerpuerto_MIL'], vuelo['ORIGEN']))['Longitud']),
-                             (me.getValue(mp.get(catalog['Aerpuerto_MIL'], vuelo['DESTINO']))['Latitud'],
-                              me.getValue(mp.get(catalog['Aerpuerto_MIL'], vuelo['DESTINO']))['Longitud']))
-        suma_distancia_total += distancia
-        num_trayectos_posibles += 1
-        trayectos.append({
-            'origen': vuelo['ORIGEN'],
-            'destino': destino,
-            'distancia': distancia,
-            'tiempo': vuelo['TIEMPO_VUELO'],
-        })
+def get_stack_req5(catalog, pila):
+    i = 1
+    camino = lt.newList('ARRAY_LIST')
+    tiempo = lt.newList('ARRAY_LIST')
+    distancia = lt.newList('ARRAY_LIST')
+    aeronave = lt.newList('ARRAY_LIST')
+    
+    while st.isEmpty(pila) == False:
+        actual = st.pop(pila)
+        if i == 1:
+            lt.addLast(camino, actual['vertexA'])
+        lt.addLast(camino, actual['vertexB'])
+        #lt.addLast(tiempo, actual['weight'])
+        for vuelo in lt.iterator(me.getValue(mp.get(catalog['Aeropuerto_COM'], actual['vertexA']))['Vuelos_origen']):
+            if vuelo['DESTINO'] == actual['vertexB']:
+                lt.addLast(tiempo, float(vuelo['TIEMPO_VUELO']))
+                lt.addLast(distancia, haversine((me.getValue(mp.get(catalog['Aeropuerto_COM'],vuelo['ORIGEN']))['Latitud'],
+                             me.getValue(mp.get(catalog['Aeropuerto_COM'],vuelo['ORIGEN']))['Longitud']),
+                             (me.getValue(mp.get(catalog['Aeropuerto_COM'],vuelo['DESTINO']))['Latitud'],
+                             me.getValue(mp.get(catalog['Aeropuerto_COM'],vuelo['DESTINO']))['Longitud'])))
+                lt.addLast(aeronave, vuelo['TIPO_AERONAVE'])
+                
+    return camino, tiempo, distancia, aeronave
 
-    return aeropuerto_importante, suma_distancia_total, num_trayectos_posibles, trayectos
 
 
-def req_6(data_structs):
+
+
+def req_6(catalog, M):
     """
     Función que soluciona el requerimiento 6
     """
     # TODO: Realizar el requerimiento 6
-    pass
+
+    max_concurrencia = 0
+    aero_max = None
+    destinos = lt.newList('ARRAY_LIST')
+    tiempos_tot = lt.newList('ARRAY_LIST')
+    distancias_tot = lt.newList('ARRAY_LIST')
+    caminos = lt.newList('ARRAY_LIST')
+    aeronaves = lt.newList('ARRAY_LIST')
+
+    aeropuertos_militares = gr.vertices(catalog['MIL_COL_T'])
+    
+    # Encontrar aeropuerto con mayor concurrencia militar
+    for aeropuerto in lt.iterator(aeropuertos_militares):
+        concurrencia = me.getValue(mp.get(catalog['Aeropuerto_MIL'], aeropuerto))['Cantidad']
+        if concurrencia >= max_concurrencia:
+            max_concurrencia = concurrencia
+            aero_max = aeropuerto
+
+
+    search = djk.Dijkstra(catalog['MIL_COL_T'], aero_max)
+    for aeropuerto in lt.iterator(aeropuertos_militares):
+        if aeropuerto != aero_max:
+            camino = djk.pathTo(search, aeropuerto)
+            if camino is not None:
+                distancia_total = djk.distTo(search, aeropuerto)
+
+                lt.addLast(destinos, aeropuerto)
+                lt.addLast(tiempos_tot, distancia_total)
+                lt.addLast(caminos, camino)
+
+                info = get_stack_req6(catalog, camino)
+                lt.addLast(distancias_tot, info[0])
+                lt.addLast(aeronaves, info[1])
+    
+    return aero_max, destinos, tiempos_tot, distancias_tot, caminos, aeronaves
+
+
+def get_stack_req6(catalog, pila):
+    """
+    Función auxiliar para obtener información detallada de los vuelos en el camino.
+    """
+    distancia = lt.newList('ARRAY_LIST')
+    aeronave = lt.newList('ARRAY_LIST')
+
+    while not st.isEmpty(pila):
+        actual = st.pop(pila)
+        for vuelo in lt.iterator(me.getValue(mp.get(catalog['Aeropuerto_COM'], actual['vertexA']))['Vuelos_origen']):
+            if vuelo['DESTINO'] == actual['vertexB']:
+                lt.addLast(distancia, haversine((me.getValue(mp.get(catalog['Aeropuerto_COM'],vuelo['ORIGEN']))['Latitud'],
+                             me.getValue(mp.get(catalog['Aeropuerto_COM'],vuelo['ORIGEN']))['Longitud']),
+                             (me.getValue(mp.get(catalog['Aeropuerto_COM'],vuelo['DESTINO']))['Latitud'],
+                             me.getValue(mp.get(catalog['Aeropuerto_COM'],vuelo['DESTINO']))['Longitud'])))
+                lt.addLast(aeronave, vuelo['TIPO_AERONAVE'])
+
+    return distancia, aeronave
 
 
 def req_7(catalog, origen, destino): # REQ 7 ----------------------------------------------------------

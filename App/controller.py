@@ -36,19 +36,73 @@ def new_controller():
     Crea una instancia del modelo
     """
     #TODO: Llamar la función del modelo que crea las estructuras de datos
-    pass
+    control = {'model': None}
+    control['model'] = model.new_catalog()
+    return control
 
 
 # Funciones para la carga de datos
 
-def load_data(control, filename):
+def load_data(control, memflag = True):
     """
     Carga los datos del reto
     """
     # TODO: Realizar la carga de datos
-    pass
+    catalog = control['model']
+    ans = []
+    
+    start_time = get_time() # Inicio toma de datos
+    if memflag is True:
+        tracemalloc.start()
+        start_memory = get_memory()
 
+    load_data_airports(catalog) # Crear dic inicial con paises
+    catalog['Aeropuerto_COM'] = catalog['Aeropuerto']
+    catalog['Aeropuerto_MIL'] = catalog['Aeropuerto']
+    catalog['Aeropuerto_CAR'] = catalog['Aeropuerto']
+    load_data_flights(catalog) # Clasificar vuelos por aeropuerto
+    
+    # ['AVIACION_COMERCIAL','MILITAR','AVIACION_CARGA']:
+    for tipo in ['Aeropuerto_COM','Aeropuerto_MIL','Aeropuerto_CAR']:
+        anstemp = model.show_data(catalog[tipo])
+        ans.append(anstemp)             
 
+    stop_time = get_time() # Final toma de datos
+    deltaTime = delta_time(start_time, stop_time)
+    # finaliza el proceso para medir memoria
+    if memflag is True:
+        stop_memory = get_memory()
+        tracemalloc.stop()
+        # calcula la diferencia de memoria
+        deltaMemory = delta_memory(stop_memory, start_memory)
+        # respuesta con los datos de tiempo y memoria
+        return ans, (deltaTime, deltaMemory)
+
+    else:
+        # respuesta sin medir memoria
+        return ans, deltaTime
+
+def load_data_flights(catalog):
+    """
+    Carga los datos del csv de vuelos
+    """
+    # TODO: Realizar la carga de datos
+    file = cf.data_dir+ 'data/fligths-2022.csv'
+    input_file = csv.DictReader(open(file, encoding='utf-8'), restval= 'Desconocido', delimiter= ";")
+    for row in input_file:
+        model.add_data_flights(catalog, row)
+
+def load_data_airports(catalog):
+    """
+    Carga los datos del csv de aeropuertos
+    """
+    # TODO: Realizar la carga de datos
+    file = cf.data_dir+ 'data/airports-2022.csv'
+    input_file = csv.DictReader(open(file, encoding='utf-8'), restval= 'Desconocido', delimiter= ";")
+    for row in input_file:
+        model.add_data_airports(catalog, row)  
+    
+      
 # Funciones de ordenamiento
 
 def sort(control):
@@ -61,6 +115,12 @@ def sort(control):
 
 # Funciones de consulta sobre el catálogo
 
+def airport_size(control):
+    return model.airport_size(control["model"])
+
+def flight_size(control):
+    return model.flight_size(control["model"])
+
 def get_data(control, id):
     """
     Retorna un dato por su ID.
@@ -69,59 +129,235 @@ def get_data(control, id):
     pass
 
 
-def req_1(control):
+def req_1(control, origen, destino, memflag = True): # REQ 1 ----------------------------------------------------------
     """
     Retorna el resultado del requerimiento 1
     """
     # TODO: Modificar el requerimiento 1
-    pass
+    catalog = control['model']
+
+    # Inicio de mediciones
+    start_time = get_time()
+    if memflag is True:
+        tracemalloc.start()
+        start_memory = get_memory()
+
+    ans = model.req_1(catalog, origen, destino)
+    
+    # Finalización de mediciones
+    stop_time = get_time()
+    deltaTime = delta_time(start_time, stop_time)
+    
+    # finaliza el proceso para medir memoria
+    if memflag is True:
+        stop_memory = get_memory()
+        tracemalloc.stop()
+        # calcula la diferencia de memoria
+        deltaMemory = delta_memory(stop_memory, start_memory)
+        # respuesta con los datos de tiempo y memoria
+        return ans, deltaTime, deltaMemory
+
+    else:
+        # respuesta sin medir memoria
+        return ans, deltaTime
 
 
-def req_2(control):
+def req_2(control, origen, destino, memflag = True): # REQ 2 ----------------------------------------------------------
     """
     Retorna el resultado del requerimiento 2
     """
-    # TODO: Modificar el requerimiento 2
-    pass
+    # TODO: Modificar el requerimiento 1
+    catalog = control['model']
+
+    # Inicio de mediciones
+    start_time = get_time()
+    if memflag is True:
+        tracemalloc.start()
+        start_memory = get_memory()
+
+    ans = model.req_2(catalog, origen, destino)
+    
+    # Finalización de mediciones
+    stop_time = get_time()
+    deltaTime = delta_time(start_time, stop_time)
+    
+    # finaliza el proceso para medir memoria
+    if memflag is True:
+        stop_memory = get_memory()
+        tracemalloc.stop()
+        # calcula la diferencia de memoria
+        deltaMemory = delta_memory(stop_memory, start_memory)
+        # respuesta con los datos de tiempo y memoria
+        return ans, deltaTime, deltaMemory
+
+    else:
+        # respuesta sin medir memoria
+        return ans, deltaTime
 
 
-def req_3(control):
+def req_3(control, memflag = True): # REQ 3 ----------------------------------------------------------
     """
     Retorna el resultado del requerimiento 3
     """
     # TODO: Modificar el requerimiento 3
-    pass
+    catalog = control['model']
+
+    # Inicio de mediciones
+    start_time = get_time()
+    if memflag is True:
+        tracemalloc.start()
+        start_memory = get_memory()
+
+    ans = model.req_3(catalog)
+    
+    # Finalización de mediciones
+    stop_time = get_time()
+    deltaTime = delta_time(start_time, stop_time)
+    
+    # finaliza el proceso para medir memoria
+    if memflag is True:
+        stop_memory = get_memory()
+        tracemalloc.stop()
+        # calcula la diferencia de memoria
+        deltaMemory = delta_memory(stop_memory, start_memory)
+        # respuesta con los datos de tiempo y memoria
+        return ans, deltaTime, deltaMemory
+
+    else:
+        # respuesta sin medir memoria
+        return ans, deltaTime
 
 
-def req_4(control):
+def req_4(control, memflag = True): # REQ 4 ----------------------------------------------------------
     """
     Retorna el resultado del requerimiento 4
     """
     # TODO: Modificar el requerimiento 4
-    pass
+    catalog = control['model']
+
+    # Inicio de mediciones
+    start_time = get_time()
+    if memflag is True:
+        tracemalloc.start()
+        start_memory = get_memory()
+
+    ans = model.req_4(catalog)
+    
+    # Finalización de mediciones
+    stop_time = get_time()
+    deltaTime = delta_time(start_time, stop_time)
+    
+    # finaliza el proceso para medir memoria
+    if memflag is True:
+        stop_memory = get_memory()
+        tracemalloc.stop()
+        # calcula la diferencia de memoria
+        deltaMemory = delta_memory(stop_memory, start_memory)
+        # respuesta con los datos de tiempo y memoria
+        return ans, deltaTime, deltaMemory
+
+    else:
+        # respuesta sin medir memoria
+        return ans, deltaTime
 
 
-def req_5(control):
+def req_5(control, memflag = True):
     """
     Retorna el resultado del requerimiento 5
     """
     # TODO: Modificar el requerimiento 5
-    pass
+    catalog = control['model']
 
-def req_6(control):
+    # Inicio de mediciones
+    start_time = get_time()
+    if memflag is True:
+        tracemalloc.start()
+        start_memory = get_memory()
+
+    ans = model.req_5(catalog)
+    
+    # Finalización de mediciones
+    stop_time = get_time()
+    deltaTime = delta_time(start_time, stop_time)
+    
+    # finaliza el proceso para medir memoria
+    if memflag is True:
+        stop_memory = get_memory()
+        tracemalloc.stop()
+        # calcula la diferencia de memoria
+        deltaMemory = delta_memory(stop_memory, start_memory)
+        # respuesta con los datos de tiempo y memoria
+        return ans, deltaTime, deltaMemory
+
+    else:
+        # respuesta sin medir memoria
+        return ans, deltaTime
+
+def req_6(control, n, memflag = True): # REQ 6 ----------------------------------------------------------
     """
     Retorna el resultado del requerimiento 6
     """
-    # TODO: Modificar el requerimiento 6
-    pass
+    # TODO: Modificar el requerimiento6
+    catalog = control['model']
+
+    # Inicio de mediciones
+    start_time = get_time()
+    if memflag is True:
+        tracemalloc.start()
+        start_memory = get_memory()
+
+    ans = model.req_6(catalog, n)
+    
+    # Finalización de mediciones
+    stop_time = get_time()
+    deltaTime = delta_time(start_time, stop_time)
+    
+    # finaliza el proceso para medir memoria
+    if memflag is True:
+        stop_memory = get_memory()
+        tracemalloc.stop()
+        # calcula la diferencia de memoria
+        deltaMemory = delta_memory(stop_memory, start_memory)
+        # respuesta con los datos de tiempo y memoria
+        return ans, deltaTime, deltaMemory
+
+    else:
+        # respuesta sin medir memoria
+        return ans, deltaTime 
 
 
-def req_7(control):
+def req_7(control, origen, destino, memflag = True): # REQ 7 ----------------------------------------------------------
     """
     Retorna el resultado del requerimiento 7
     """
     # TODO: Modificar el requerimiento 7
-    pass
+    catalog = control['model']
+
+    # Inicio de mediciones
+    start_time = get_time()
+    if memflag is True:
+        tracemalloc.start()
+        start_memory = get_memory()
+
+    ans = model.req_7(catalog, origen, destino)
+    
+    # Finalización de mediciones
+    stop_time = get_time()
+    deltaTime = delta_time(start_time, stop_time)
+    
+    # finaliza el proceso para medir memoria
+    if memflag is True:
+        stop_memory = get_memory()
+        tracemalloc.stop()
+        # calcula la diferencia de memoria
+        deltaMemory = delta_memory(stop_memory, start_memory)
+        # respuesta con los datos de tiempo y memoria
+        return ans, deltaTime, deltaMemory
+
+    else:
+        # respuesta sin medir memoria
+        return ans, deltaTime
+    
 
 
 def req_8(control):
