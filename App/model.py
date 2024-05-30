@@ -137,7 +137,7 @@ def new_catalog():
 
 def add_data_airports(catalog, row):
     add_airport(catalog['Aeropuerto'], row['ICAO'], row)
-    gr.xinsertVertex(catalog['COM_T'], row['ICAO'])
+    gr.insertVertex(catalog['COM_T'], row['ICAO'])
     gr.insertVertex(catalog['COM_D'], row['ICAO'])
     if (row['PAIS'] == "Colombia"):
         gr.insertVertex(catalog['MIL_COL_T'], row['ICAO'])
@@ -501,7 +501,7 @@ def req_5(catalog):
     caminos = lt.newList('ARRAY_LIST')
     aeronaves = lt.newList('ARRAY_LIST')
 
-    
+     
     aeropuertos = gr.vertices(catalog['MIL_COL_T'])
     
     
