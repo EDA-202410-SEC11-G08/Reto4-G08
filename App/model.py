@@ -139,9 +139,13 @@ def add_data_airports(catalog, row):
     add_airport(catalog['Aeropuerto'], row['ICAO'], row)
     gr.insertVertex(catalog['COM_T'], row['ICAO'])
     gr.insertVertex(catalog['COM_D'], row['ICAO'])
+    #gr.insertVertex(catalog['CARGA_D'], row['ICAO'])
+    #gr.insertVertex(catalog['CARGA_D'], row['ICAO'])
     if (row['PAIS'] == "Colombia"):
         gr.insertVertex(catalog['MIL_COL_T'], row['ICAO'])
         gr.insertVertex(catalog['MIL_COL_D'], row['ICAO'])
+        
+        
     return catalog
 
 def add_airport(map, airport, row, mode = 0):
@@ -391,91 +395,151 @@ def get_stack_req2(catalog, pila):
 def req_3(catalog):
     """
     Función que soluciona el requerimiento 3 utilizando el algoritmo de Prim.
-    
     """
     max_concurrencia = 0
     aero_max = None
-    distancias_tot = 0
+    distancia_tot = 0
     trayectos_totales = 0
     caminos = []
 
-    aeropuertos_carga = gr.vertices(catalog['CARGA_D'])
+    aeropuertos = gr.vertices(catalog['COM_D'])
 
-    for aeropuerto in lt.iterator(aeropuertos_carga):
-        concurrencia = mp.getValue(mp.get(catalog['Aeropuerto_CAR'], aeropuerto))['Cantidad']
+    for aeropuerto in aeropuertos:
+        concurrencia = catalog['Aeropuerto_COM'][aeropuerto]['Cantidad']
         if concurrencia > max_concurrencia or (concurrencia == max_concurrencia and aeropuerto < aero_max):
             max_concurrencia = concurrencia
             aero_max = aeropuerto
+
+    mst = prim.PrimMST(catalog['COM_D'], aero_max)
+
+    pila_arcos = prim.edgesMST(catalog['COM_D'], mst)
+    trayectos_totales=st.size(pila_arcos)
+
+    peso_total = prim.weightMST(catalog['COM_D'], mst)
+    distancia_tot += peso_total
     
-    mst = prim.PrimMST(catalog['CARGA_D'], aero_max)
 
-    trayectos_totales = gr.numVertices(catalog['CARGA_D']) - 1
-
-    distancias_tot = prim.weightMST(catalog['CARGA_D'], mst)
-
-
-    trayectos = prim.edgesMST(mst,aero_max)
-    caminos=trayectos
-
-    return aero_max, max_concurrencia, distancias_tot, trayectos_totales, caminos
-
-
-def req_4(catalog):
-    """
-    Función que soluciona el requerimiento 4.
-    
-    """
-    max_concurrencia = 0
-    aero_max = None
     destinos = lt.newList('ARRAY_LIST')
-    tiempos_tot = lt.newList('ARRAY_LIST')
-    distancias_tot = 0
-    trayectos_totales = 0
+    distancias = lt.newList('ARRAY_LIST')
+    tiempos = lt.newList('ARRAY_LIST')
     caminos = lt.newList('ARRAY_LIST')
     aeronaves = lt.newList('ARRAY_LIST')
+    tiempos_tot = lt.newList('ARRAY_LIST')
 
-    aeropuertos_carga = gr.vertices(catalog['CARGA_D'])# Obtener lista de aeropuertos de carga
 
-
-    # Encontrar aeropuerto con mayor concurrencia de carga
-    for aeropuerto in lt.iterator(aeropuertos_carga):
-        concurrencia = me.getValue(mp.get(catalog['Aeropuerto_CAR'], aeropuerto))['Cantidad']
-        if concurrencia > max_concurrencia or (concurrencia == max_concurrencia and aeropuerto < aero_max):
-            max_concurrencia = concurrencia
-            aero_max = aeropuerto
     
-    search = djk.Dijkstra(catalog['CARGA_D'], aero_max)
-    for aeropuerto in lt.iterator(aeropuertos_carga):
+    
+    
+    for aeropuerto in lt.iterator(aeropuertos):
         if aeropuerto != aero_max:
-            camino = djk.pathTo(search, aeropuerto)
-            if camino is not None: 
-                trayectos_totales += 1
-                lt.addLast(caminos, camino)
-                lt.addLast(tiempos_tot, djk.distTo(search, aeropuerto))
-                lt.addLast(destinos, aeropuerto)
+            camino = prim.edgesMST(mst, aeropuerto)
+            if camino != None: 
+                lt.addLast(tiempos_tot, prim.scan(catalog['COM_D'],mst, aeropuerto))
+                lt.addLast(caminos, prim.edgesMST(mst, aeropuerto))
 
-                # Calcular distancia total
-                distancias_tot += djk.distTo(search, aeropuerto)
-
-                # Obtener información de los vuelos
-                info = get_stack_req4(catalog, camino)
-                lt.addLast(distancias_tot, info[2])
+                info = get_stack_req3(catalog, camino)
+                lt.addLast(destinos, info[0])
+                lt.addLast(tiempos, info[1])
+                lt.addLast(distancias, info[2])
                 lt.addLast(aeronaves, info[3])
                 
-    return aero_max, destinos, distancias_tot, trayectos_totales, caminos
+    return aero_max, max_concurrencia, destinos, tiempos_tot, tiempos, distancias, caminos, aeronaves
 
-def get_stack_req4(catalog, pila):
-    """
-    Función auxiliar que obtiene información detallada de los trayectos encontrados.
-    """
+
+
+def get_stack_req3(catalog, pila):
+    i = 1
     camino = lt.newList('ARRAY_LIST')
     tiempo = lt.newList('ARRAY_LIST')
     distancia = lt.newList('ARRAY_LIST')
     aeronave = lt.newList('ARRAY_LIST')
     
-    while not st.isEmpty(pila):
+    while st.isEmpty(pila) == False:
         actual = st.pop(pila)
+        if i == 1:
+            lt.addLast(camino, actual['vertexA'])
         lt.addLast(camino, actual['vertexB'])
+        #lt.addLast(tiempo, actual['weight'])
+        for vuelo in lt.iterator(me.getValue(mp.get(catalog['Aeropuerto_COM'], actual['vertexA']))['Vuelos_origen']):
+            if vuelo['DESTINO'] == actual['vertexB']:
+                lt.addLast(tiempo, float(vuelo['TIEMPO_VUELO']))
+                lt.addLast(distancia, haversine((me.getValue(mp.get(catalog['Aeropuerto_COM'],vuelo['ORIGEN']))['Latitud'],
+                             me.getValue(mp.get(catalog['Aeropuerto_COM'],vuelo['ORIGEN']))['Longitud']),
+                             (me.getValue(mp.get(catalog['Aeropuerto_COM'],vuelo['DESTINO']))['Latitud'],
+                             me.getValue(mp.get(catalog['Aeropuerto_COM'],vuelo['DESTINO']))['Longitud'])))
+                lt.addLast(aeronave, vuelo['TIPO_AERONAVE'])
+                
+    return camino, tiempo, distancia, aeronave
+
+
+def req_4(catalog):
+    """
+    Función que soluciona el requerimiento 4 utilizando el algoritmo de Prim.
+    """
+    max_concurrencia = 0
+    aero_max = None
+    distancia_tot = 0
+    trayectos_totales = 0
+    caminos = []
+
+    aeropuertos = gr.vertices(catalog['CARGA_D'])
+
+    for aeropuerto in aeropuertos:
+        concurrencia = catalog['Aeropuerto_CAR'][aeropuerto]['Cantidad']
+        if concurrencia > max_concurrencia or (concurrencia == max_concurrencia and aeropuerto < aero_max):
+            max_concurrencia = concurrencia
+            aero_max = aeropuerto
+
+    mst = prim.PrimMST(catalog['CARGA_D'], aero_max)
+
+    pila_arcos = prim.edgesMST(catalog['CARGA_D'], mst)
+    trayectos_totales=st.size(pila_arcos)
+
+    peso_total = prim.weightMST(catalog['CARGA_D'], mst)
+    distancia_tot += peso_total
+    
+
+    destinos = lt.newList('ARRAY_LIST')
+    distancias = lt.newList('ARRAY_LIST')
+    tiempos = lt.newList('ARRAY_LIST')
+    caminos = lt.newList('ARRAY_LIST')
+    aeronaves = lt.newList('ARRAY_LIST')
+    tiempos_tot = lt.newList('ARRAY_LIST')
+
+
+    
+    
+    
+    for aeropuerto in lt.iterator(aeropuertos):
+        if aeropuerto != aero_max:
+            camino = prim.edgesMST(mst, aeropuerto)
+            if camino != None: 
+                lt.addLast(tiempos_tot, prim.scan(catalog['CARGA_D'],mst, aeropuerto))
+                lt.addLast(caminos, prim.edgesMST(mst, aeropuerto))
+
+                info = get_stack_req4(catalog, camino)
+                lt.addLast(destinos, info[0])
+                lt.addLast(tiempos, info[1])
+                lt.addLast(distancias, info[2])
+                lt.addLast(aeronaves, info[3])
+                
+    return aero_max, max_concurrencia, destinos, tiempos_tot, tiempos, distancias, caminos, aeronaves
+
+
+
+def get_stack_req4(catalog, pila):
+    i = 1
+    camino = lt.newList('ARRAY_LIST')
+    tiempo = lt.newList('ARRAY_LIST')
+    distancia = lt.newList('ARRAY_LIST')
+    aeronave = lt.newList('ARRAY_LIST')
+    
+    while st.isEmpty(pila) == False:
+        actual = st.pop(pila)
+        if i == 1:
+            lt.addLast(camino, actual['vertexA'])
+        lt.addLast(camino, actual['vertexB'])
+        #lt.addLast(tiempo, actual['weight'])
         for vuelo in lt.iterator(me.getValue(mp.get(catalog['Aeropuerto_CAR'], actual['vertexA']))['Vuelos_origen']):
             if vuelo['DESTINO'] == actual['vertexB']:
                 lt.addLast(tiempo, float(vuelo['TIEMPO_VUELO']))
@@ -566,20 +630,21 @@ def req_6(catalog, M):
     tiempos_tot = lt.newList('ARRAY_LIST')
     distancias_tot = lt.newList('ARRAY_LIST')
     caminos = lt.newList('ARRAY_LIST')
+    subl=lt.newList('ARRAY_LIST')
     aeronaves = lt.newList('ARRAY_LIST')
 
-    aeropuertos_militares = gr.vertices(catalog['MIL_COL_T'])
+    aeropuertos = gr.vertices(catalog['COM_D'])
     
-    # Encontrar aeropuerto con mayor concurrencia militar
-    for aeropuerto in lt.iterator(aeropuertos_militares):
-        concurrencia = me.getValue(mp.get(catalog['Aeropuerto_MIL'], aeropuerto))['Cantidad']
+    # Encontrar aeropuerto con mayor concurrencia
+    for aeropuerto in lt.iterator(aeropuertos):
+        concurrencia = me.getValue(mp.get(catalog['Aeropuerto_COM'], aeropuerto))['Cantidad']
         if concurrencia >= max_concurrencia:
             max_concurrencia = concurrencia
             aero_max = aeropuerto
 
 
-    search = djk.Dijkstra(catalog['MIL_COL_T'], aero_max)
-    for aeropuerto in lt.iterator(aeropuertos_militares):
+    search = djk.Dijkstra(catalog['COM_D'], aero_max)
+    for aeropuerto in lt.iterator(aeropuertos):
         if aeropuerto != aero_max:
             camino = djk.pathTo(search, aeropuerto)
             if camino is not None:
@@ -593,7 +658,10 @@ def req_6(catalog, M):
                 lt.addLast(distancias_tot, info[0])
                 lt.addLast(aeronaves, info[1])
     
-    return aero_max, destinos, tiempos_tot, distancias_tot, caminos, aeronaves
+    if lt.size(caminos)>0:
+        subl=lt.subList(caminos,1,M)            
+    
+    return aero_max, destinos, tiempos_tot, distancias_tot, subl, aeronaves
 
 
 def get_stack_req6(catalog, pila):
