@@ -404,16 +404,16 @@ def req_3(catalog):
 
     aeropuertos = gr.vertices(catalog['COM_D'])
 
-    for aeropuerto in aeropuertos:
-        concurrencia = catalog['Aeropuerto_COM'][aeropuerto]['Cantidad']
-        if concurrencia > max_concurrencia or (concurrencia == max_concurrencia and aeropuerto < aero_max):
-            max_concurrencia = concurrencia
-            aero_max = aeropuerto
+    aeropuertos = gr.vertices(catalog['COM_D'])
+    for aeropuerto in lt.iterator(aeropuertos): # Obtener aeropuerto de mayor concurrencia militar
+        if me.getValue(mp.get(catalog['Aeropuerto_COM'], aeropuerto))['Cantidad'] >= max_concurrencia:
+            max_concurrencia = me.getValue(mp.get(catalog['Aeropuerto_COM'],aeropuerto))['Cantidad'] # concurrencia
+            aero_max = aeropuerto  # aeropuerto 
 
     mst = prim.PrimMST(catalog['COM_D'], aero_max)
 
     pila_arcos = prim.edgesMST(catalog['COM_D'], mst)
-    trayectos_totales=st.size(pila_arcos)
+    #trayectos_totales=st.size(pila_arcos)
 
     peso_total = prim.weightMST(catalog['COM_D'], mst)
     distancia_tot += peso_total
