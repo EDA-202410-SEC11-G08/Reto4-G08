@@ -204,11 +204,11 @@ def print_req_3(info_req3, mode = 0):
                'Nombre Destino','Ciudad Destino','Pais Destino',
                'Distancia recorrida [Km]','Tiempo del trayecto [min]', 'Tipo de aeronave']
     table.append(header)
-    table.append([me.getValue(mp.get(control['model']['Aeropuerto_MIL'],info_req4[0]))['ICAO'],
-                  me.getValue(mp.get(control['model']['Aeropuerto_MIL'],info_req4[0]))['Nombre'],
-                  me.getValue(mp.get(control['model']['Aeropuerto_MIL'],info_req4[0]))['Ciudad'],
-                  me.getValue(mp.get(control['model']['Aeropuerto_MIL'],info_req4[0]))['Pais'],
-                  me.getValue(mp.get(control['model']['Aeropuerto_MIL'],info_req4[0]))['Cantidad']])
+    table.append([me.getValue(mp.get(control['model']['Aeropuerto_COM'],info_req4[0]))['ICAO'],
+                  me.getValue(mp.get(control['model']['Aeropuerto_COM'],info_req4[0]))['Nombre'],
+                  me.getValue(mp.get(control['model']['Aeropuerto_COM'],info_req4[0]))['Ciudad'],
+                  me.getValue(mp.get(control['model']['Aeropuerto_COM'],info_req4[0]))['Pais'],
+                  me.getValue(mp.get(control['model']['Aeropuerto_COM'],info_req4[0]))['Cantidad']])
     print(tabulate(table))
     for distancias_trayecto in lt.iterator(info_req3[5]):
         for distancia in lt.iterator(distancias_trayecto): distancia_total += float(distancia)
@@ -235,12 +235,12 @@ def print_req_3(info_req3, mode = 0):
                     destino = actual['vertexB']
     
                 table1.append([(actual['vertexA'],"->",actual['vertexB']),
-                               me.getValue(mp.get(control['model']['Aeropuerto_MIL'],actual['vertexA']))['Nombre'],
-                               me.getValue(mp.get(control['model']['Aeropuerto_MIL'],actual['vertexA']))['Ciudad'],
-                               me.getValue(mp.get(control['model']['Aeropuerto_MIL'],actual['vertexA']))['Pais'],
-                               me.getValue(mp.get(control['model']['Aeropuerto_MIL'],actual['vertexB']))['Nombre'],
-                               me.getValue(mp.get(control['model']['Aeropuerto_MIL'],actual['vertexB']))['Ciudad'],
-                               me.getValue(mp.get(control['model']['Aeropuerto_MIL'],actual['vertexB']))['Pais'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_COM'],actual['vertexA']))['Nombre'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_COM'],actual['vertexA']))['Ciudad'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_COM'],actual['vertexA']))['Pais'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_COM'],actual['vertexB']))['Nombre'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_COM'],actual['vertexB']))['Ciudad'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_COM'],actual['vertexB']))['Pais'],
                                lt.getElement(lt.getElement(info_req3[5],j),i),
                                lt.getElement(lt.getElement(info_req3[4],j),i),
                                lt.getElement(lt.getElement(info_req3[7],j),i)])
@@ -263,12 +263,12 @@ def print_req_3(info_req3, mode = 0):
             for nave in lt.iterator(lt.getElement(info_req3[7],j)): naves.append(nave)
             
             table1.append([(origen,"->",destino),
-                            me.getValue(mp.get(control['model']['Aeropuerto_MIL'],origen))['Nombre'],
-                            me.getValue(mp.get(control['model']['Aeropuerto_MIL'],origen))['Ciudad'],
-                            me.getValue(mp.get(control['model']['Aeropuerto_MIL'],origen))['Pais'],
-                            me.getValue(mp.get(control['model']['Aeropuerto_MIL'],destino))['Nombre'],
-                            me.getValue(mp.get(control['model']['Aeropuerto_MIL'],destino))['Ciudad'],
-                            me.getValue(mp.get(control['model']['Aeropuerto_MIL'],destino))['Pais'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_COM'],origen))['Nombre'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_COM'],origen))['Ciudad'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_COM'],origen))['Pais'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_COM'],destino))['Nombre'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_COM'],destino))['Ciudad'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_COM'],destino))['Pais'],
                             distancia_tot,
                             lt.getElement(info_req3[3],j),
                             naves])
@@ -285,17 +285,17 @@ def print_req_4(info_req4, mode = 0):
     print("El aeropuerto de mayor importancia segun la concurrencia de carga es:")
     
     table = []
-    header = ['ICAO','Nombre','Ciudad','Pais', 'Concurrencia Militar']
+    header = ['ICAO','Nombre','Ciudad','Pais', 'Concurrencia de Carga']
     header1 = ['A->B',
                'Nombre Origen','Ciudad Origen','Pais Origen',
                'Nombre Destino','Ciudad Destino','Pais Destino',
                'Distancia recorrida [Km]','Tiempo del trayecto [min]', 'Tipo de aeronave']
     table.append(header)
-    table.append([me.getValue(mp.get(control['model']['Aeropuerto_MIL'],info_req4[0]))['ICAO'],
-                  me.getValue(mp.get(control['model']['Aeropuerto_MIL'],info_req4[0]))['Nombre'],
-                  me.getValue(mp.get(control['model']['Aeropuerto_MIL'],info_req4[0]))['Ciudad'],
-                  me.getValue(mp.get(control['model']['Aeropuerto_MIL'],info_req4[0]))['Pais'],
-                  me.getValue(mp.get(control['model']['Aeropuerto_MIL'],info_req4[0]))['Cantidad']])
+    table.append([me.getValue(mp.get(control['model']['Aeropuerto_CAR'],info_req4[0]))['ICAO'],
+                  me.getValue(mp.get(control['model']['Aeropuerto_CAR'],info_req4[0]))['Nombre'],
+                  me.getValue(mp.get(control['model']['Aeropuerto_CAR'],info_req4[0]))['Ciudad'],
+                  me.getValue(mp.get(control['model']['Aeropuerto_CAR'],info_req4[0]))['Pais'],
+                  me.getValue(mp.get(control['model']['Aeropuerto_CAR'],info_req4[0]))['Cantidad']])
     print(tabulate(table))
     for distancias_trayecto in lt.iterator(info_req4[5]):
         for distancia in lt.iterator(distancias_trayecto): distancia_total += float(distancia)
@@ -322,12 +322,12 @@ def print_req_4(info_req4, mode = 0):
                     destino = actual['vertexB']
     
                 table1.append([(actual['vertexA'],"->",actual['vertexB']),
-                               me.getValue(mp.get(control['model']['Aeropuerto_MIL'],actual['vertexA']))['Nombre'],
-                               me.getValue(mp.get(control['model']['Aeropuerto_MIL'],actual['vertexA']))['Ciudad'],
-                               me.getValue(mp.get(control['model']['Aeropuerto_MIL'],actual['vertexA']))['Pais'],
-                               me.getValue(mp.get(control['model']['Aeropuerto_MIL'],actual['vertexB']))['Nombre'],
-                               me.getValue(mp.get(control['model']['Aeropuerto_MIL'],actual['vertexB']))['Ciudad'],
-                               me.getValue(mp.get(control['model']['Aeropuerto_MIL'],actual['vertexB']))['Pais'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_CAR'],actual['vertexA']))['Nombre'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_CAR'],actual['vertexA']))['Ciudad'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_CAR'],actual['vertexA']))['Pais'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_CAR'],actual['vertexB']))['Nombre'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_CAR'],actual['vertexB']))['Ciudad'],
+                               me.getValue(mp.get(control['model']['Aeropuerto_CAR'],actual['vertexB']))['Pais'],
                                lt.getElement(lt.getElement(info_req4[5],j),i),
                                lt.getElement(lt.getElement(info_req4[4],j),i),
                                lt.getElement(lt.getElement(info_req4[7],j),i)])
@@ -350,12 +350,12 @@ def print_req_4(info_req4, mode = 0):
             for nave in lt.iterator(lt.getElement(info_req4[7],j)): naves.append(nave)
             
             table1.append([(origen,"->",destino),
-                            me.getValue(mp.get(control['model']['Aeropuerto_MIL'],origen))['Nombre'],
-                            me.getValue(mp.get(control['model']['Aeropuerto_MIL'],origen))['Ciudad'],
-                            me.getValue(mp.get(control['model']['Aeropuerto_MIL'],origen))['Pais'],
-                            me.getValue(mp.get(control['model']['Aeropuerto_MIL'],destino))['Nombre'],
-                            me.getValue(mp.get(control['model']['Aeropuerto_MIL'],destino))['Ciudad'],
-                            me.getValue(mp.get(control['model']['Aeropuerto_MIL'],destino))['Pais'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_CAR'],origen))['Nombre'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_CAR'],origen))['Ciudad'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_CAR'],origen))['Pais'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_CAR'],destino))['Nombre'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_CAR'],destino))['Ciudad'],
+                            me.getValue(mp.get(control['model']['Aeropuerto_CAR'],destino))['Pais'],
                             distancia_tot,
                             lt.getElement(info_req4[3],j),
                             naves])
