@@ -139,8 +139,8 @@ def add_data_airports(catalog, row):
     add_airport(catalog['Aeropuerto'], row['ICAO'], row)
     gr.insertVertex(catalog['COM_T'], row['ICAO'])
     gr.insertVertex(catalog['COM_D'], row['ICAO'])
-    #gr.insertVertex(catalog['CARGA_D'], row['ICAO'])
-    #gr.insertVertex(catalog['CARGA_D'], row['ICAO'])
+    gr.insertVertex(catalog['CARGA_D'], row['ICAO'])
+    gr.insertVertex(catalog['CARGA_T'], row['ICAO'])
     if (row['PAIS'] == "Colombia"):
         gr.insertVertex(catalog['MIL_COL_T'], row['ICAO'])
         gr.insertVertex(catalog['MIL_COL_D'], row['ICAO'])
@@ -335,7 +335,25 @@ def get_stack_req1(catalog, pila):
                              me.getValue(mp.get(catalog['Aeropuerto_COM'],vuelo['DESTINO']))['Longitud']))
                 
     return camino, tiempo, distancia
-        
+  
+def get_stack_req1_1(catalog, pila):
+    camino = lt.newList('ARRAY_LIST')
+    tiempo = 0
+    distancia = 0
+    
+    while st.isEmpty(pila) == False:
+        actual = st.pop(pila)
+        sig = st.top(pila)
+        lt.addLast(camino, actual)
+        for vuelo in lt.iterator(me.getValue(mp.get(catalog['Aeropuerto_COM'], actual))['Vuelos_origen']):
+            if vuelo['DESTINO'] == sig:
+                tiempo += float(vuelo['TIEMPO_VUELO'])
+                distancia += haversine((me.getValue(mp.get(catalog['Aeropuerto_COM'],vuelo['ORIGEN']))['Latitud'],
+                             me.getValue(mp.get(catalog['Aeropuerto_COM'],vuelo['ORIGEN']))['Longitud']),
+                             (me.getValue(mp.get(catalog['Aeropuerto_COM'],vuelo['DESTINO']))['Latitud'],
+                             me.getValue(mp.get(catalog['Aeropuerto_COM'],vuelo['DESTINO']))['Longitud']))
+                
+    return camino, tiempo, distancia        
 
 def req_2(catalog, origen, destino): # REQ 2 ----------------------------------------------------------
     """
@@ -428,20 +446,11 @@ def req_3(catalog):
 
 
     
-    
-    
-    for aeropuerto in lt.iterator(aeropuertos):
-        if aeropuerto != aero_max:
-            camino = prim.edgesMST(mst, aeropuerto)
-            if camino != None: 
-                lt.addLast(tiempos_tot, prim.scan(catalog['COM_D'],mst, aeropuerto))
-                lt.addLast(caminos, prim.edgesMST(mst, aeropuerto))
-
-                info = get_stack_req3(catalog, camino)
-                lt.addLast(destinos, info[0])
-                lt.addLast(tiempos, info[1])
-                lt.addLast(distancias, info[2])
-                lt.addLast(aeronaves, info[3])
+    info = get_stack_req3(catalog, pila_arcos['mst'])
+    lt.addLast(destinos, info[0])
+    lt.addLast(tiempos, info[1])
+    lt.addLast(distancias, info[2])
+    lt.addLast(aeronaves, info[3])
                 
     return aero_max, max_concurrencia, destinos, tiempos_tot, tiempos, distancias, caminos, aeronaves
 
@@ -483,11 +492,13 @@ def req_4(catalog):
     caminos = []
 
     aeropuertos = gr.vertices(catalog['CARGA_D'])
+
+    aeropuertos = gr.vertices(catalog['CARGA_D'])
     for aeropuerto in lt.iterator(aeropuertos): # Obtener aeropuerto de mayor concurrencia militar
-        if me.getValue(mp.get(catalog['Aeropuerto_CAR'], aeropuerto))['Cantidad'] >= max:
-            max = me.getValue(mp.get(catalog['Aeropuerto_CAR'],aeropuerto))['Cantidad'] # concurrencia
+        if me.getValue(mp.get(catalog['Aeropuerto_CAR'], aeropuerto))['Cantidad'] >= max_concurrencia:
+            max_concurrencia = me.getValue(mp.get(catalog['Aeropuerto_CAR'],aeropuerto))['Cantidad'] # concurrencia
             aero_max = aeropuerto  # aeropuerto 
-   
+
     mst = prim.PrimMST(catalog['CARGA_D'], aero_max)
 
     pila_arcos = prim.edgesMST(catalog['CARGA_D'], mst)
@@ -506,20 +517,11 @@ def req_4(catalog):
 
 
     
-    
-    
-    for aeropuerto in lt.iterator(aeropuertos):
-        if aeropuerto != aero_max:
-            camino = prim.edgesMST(mst, aeropuerto)
-            if camino != None: 
-                lt.addLast(tiempos_tot, prim.scan(catalog['CARGA_D'],mst, aeropuerto))
-                lt.addLast(caminos, prim.edgesMST(mst, aeropuerto))
-
-                info = get_stack_req4(catalog, camino)
-                lt.addLast(destinos, info[0])
-                lt.addLast(tiempos, info[1])
-                lt.addLast(distancias, info[2])
-                lt.addLast(aeronaves, info[3])
+    info = get_stack_req3(catalog, pila_arcos['mst'])
+    lt.addLast(destinos, info[0])
+    lt.addLast(tiempos, info[1])
+    lt.addLast(distancias, info[2])
+    lt.addLast(aeronaves, info[3])
                 
     return aero_max, max_concurrencia, destinos, tiempos_tot, tiempos, distancias, caminos, aeronaves
 
