@@ -383,7 +383,7 @@ def subList(lst, pos, numelem):
                   'cmpfunction': lst['cmpfunction']}
         elem = pos-1
         cont = 1
-        while cont <= numelem:
+        while cont <= int(numelem):
             sublst['elements'].append(lst['elements'][elem])
             sublst['size'] += 1
             elem += 1

@@ -24,7 +24,6 @@
  * Dario Correal - Version inicial
  """
 
-import folium
 import math
 import config as cf
 from DISClib.ADT import list as lt
